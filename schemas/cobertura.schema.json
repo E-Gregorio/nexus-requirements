@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qasl://nexus/cobertura/1.0",
+  "title": "Resultado de Análisis de Cobertura RTM",
+  "type": "object",
+  "required": ["hu_id", "coberturas", "gaps", "resumen"],
+  "properties": {
+    "hu_id": { "type": "string" },
+    "coberturas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["br_id", "cobertura_porcentaje"],
+        "properties": {
+          "br_id": { "type": "string" },
+          "escenarios_positivos": { "type": "array", "items": { "type": "string" } },
+          "escenarios_negativos": { "type": "array", "items": { "type": "string" } },
+          "cobertura_porcentaje": { "type": "number" },
+          "justificacion": { "type": "string" }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "br_id", "tipo_gap", "severidad", "descripcion"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^GAP-\\d{3}$" },
+          "br_id": { "type": "string" },
+          "tipo_gap": { "enum": ["falta_positivo", "falta_negativo", "falta_limite", "falta_seguridad", "sin_escenarios"] },
+          "severidad": { "enum": ["CRITICO", "ALTO", "MEDIO", "BAJO"] },
+          "descripcion": { "type": "string" },
+          "owasp": { "type": "string" },
+          "escenario_sugerido": {
+            "type": "object",
+            "properties": {
+              "titulo": { "type": "string" },
+              "pasos": { "type": "array", "items": { "type": "object", "properties": { "tipo": { "enum": ["DADO", "CUANDO", "ENTONCES", "Y"] }, "texto": { "type": "string" } } } }
+            }
+          }
+        }
+      }
+    },
+    "resumen": {
+      "type": "object",
+      "properties": {
+        "total_brs": { "type": "integer" },
+        "cobertura_inicial_promedio": { "type": "number", "description": "Promedio de cobertura real por BR (mapeo semántico), NO conteo de escenarios" },
+        "cobertura_proyectada": { "type": "number", "description": "Cobertura si se agregan los escenarios sugeridos" },
+        "total_gaps": { "type": "integer" },
+        "gaps_por_severidad": { "type": "object" }
+      }
+    }
+  }
+}

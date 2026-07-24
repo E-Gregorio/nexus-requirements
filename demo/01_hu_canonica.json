@@ -1,0 +1,53 @@
+{
+  "id": "HU_PASS_01",
+  "nombre": "Recuperar contraseña",
+  "epica": "NO_ESPECIFICADO",
+  "prioridad": "Alta",
+  "estado": "NO_ESPECIFICADO",
+  "descripcion": {
+    "como": "usuario",
+    "quiero": "recuperar mi contraseña",
+    "para": "poder entrar al sistema"
+  },
+  "usuarios_roles": "NO_ESPECIFICADO",
+  "reglas_negocio": [
+    {
+      "id": "BR1",
+      "descripcion": "El usuario ingresa su correo y recibe un link para restablecer la contraseña",
+      "tipo": "funcionalidad",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "El link expira rápido por seguridad",
+      "tipo": "seguridad",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "La nueva contraseña debe ser segura",
+      "tipo": "datos",
+      "origen": "inferida_de_texto"
+    }
+  ],
+  "precondiciones": "NO_ESPECIFICADO",
+  "dependencias": "NO_ESPECIFICADO",
+  "estimaciones": "NO_ESPECIFICADO",
+  "escenarios": [],
+  "dentro_alcance": "NO_ESPECIFICADO",
+  "fuera_alcance": "NO_ESPECIFICADO",
+  "referencias": "NO_ESPECIFICADO",
+  "notas": "Criterio de aceptación original no verificable: 'el usuario puede recuperar su contraseña sin problemas'.",
+  "_meta": {
+    "campos_no_especificados": [
+      "epica", "estado", "usuarios_roles", "precondiciones", "dependencias",
+      "estimaciones", "escenarios", "dentro_alcance", "fuera_alcance", "referencias"
+    ],
+    "supuestos_normalizacion": [
+      "Las 3 viñetas del texto se normalizaron como BR1-BR3 (origen: inferida_de_texto) — el documento no las numeraba",
+      "NINGÚN valor fue inventado: expiración del link y política de contraseña quedan sin cuantificar (los cuantifica la HU Ideal como PROPUESTOS)"
+    ],
+    "fuente": "demo/HU_PASS_01_original.md",
+    "version": 1
+  }
+}

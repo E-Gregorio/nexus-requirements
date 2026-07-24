@@ -1,0 +1,199 @@
+{
+  "hu_id": "HU_PASS_01",
+  "version_hu": 1,
+  "version_catalogo": "0.1.0",
+  "evaluaciones": [
+    {
+      "regla": "NX-001",
+      "veredicto": "CUMPLE",
+      "evidencia": "ID 'HU_PASS_01' con formato válido"
+    },
+    {
+      "regla": "NX-002",
+      "veredicto": "CUMPLE",
+      "evidencia": "Como/Quiero/Para completos"
+    },
+    {
+      "regla": "NX-003",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin épica referenciada con ID EP-NNN"
+    },
+    {
+      "regla": "NX-004",
+      "veredicto": "CUMPLE",
+      "evidencia": "Prioridad: Alta"
+    },
+    {
+      "regla": "NX-005",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BRs sin numerar en el documento fuente (inferidas en normalización: BR1, BR2, BR3)"
+    },
+    {
+      "regla": "NX-006",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Cero escenarios Gherkin documentados"
+    },
+    {
+      "regla": "NX-007",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin precondiciones declaradas"
+    },
+    {
+      "regla": "NX-008",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin dependencias declaradas (ni 'Ninguna' explícito)"
+    },
+    {
+      "regla": "NX-009",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin estimaciones VCR"
+    },
+    {
+      "regla": "NX-010",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin sección Dentro del Alcance"
+    },
+    {
+      "regla": "NX-011",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin sección Fuera del Alcance"
+    },
+    {
+      "regla": "NX-012",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Usuarios/Roles no identificados"
+    },
+    {
+      "regla": "NX-013",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin referencias documentales"
+    },
+    {
+      "regla": "NX-020",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'El link expira rápido por seguridad' (término 'rápido' no cuantificado); BR3: 'La nueva contraseña debe ser segura' (término 'segura' no cuantificado); CA1: 'el usuario puede recuperar su contraseña sin problemas' (término 'sin problemas' no cuantificado)",
+      "recomendacion": "Cuantificar términos ambiguos: BR2 debe especificar tiempo exacto de expiración (ej. '30 minutos'), BR3 debe detallar criterios de seguridad de contraseña (longitud mínima, complejidad, caracteres especiales), CA1 debe reescribirse con condiciones verificables concretas"
+    },
+    {
+      "regla": "NX-021",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'El link expira rápido por seguridad' no es testeable sin especificar tiempo exacto; BR3: 'La nueva contraseña debe ser segura' no es testeable sin criterios objetivos de seguridad; CA1: 'sin problemas' no define condiciones verificables",
+      "recomendacion": "Reformular BR2 como 'El link expira a los [X] minutos desde su generación'; BR3 debe especificar política de contraseña (ej. 'mínimo 8 caracteres, al menos 1 mayúscula, 1 número, 1 carácter especial'); CA1 debe dividirse en criterios específicos y verificables"
+    },
+    {
+      "regla": "NX-022",
+      "veredicto": "CUMPLE",
+      "evidencia": "No se detectan contradicciones entre las tres BRs especificadas ni con la descripción de la HU. Las reglas son complementarias: BR1 describe el flujo de inicio, BR2 la expiración del link, BR3 la política de contraseña"
+    },
+    {
+      "regla": "NX-023",
+      "veredicto": "CUMPLE",
+      "evidencia": "La HU cubre una funcionalidad única y atómica: 'Recuperar contraseña'. Todas las BRs (ingreso de correo, expiración de link, política de contraseña) son componentes de esta única funcionalidad"
+    },
+    {
+      "regla": "NX-024",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'El link expira rápido' carece de valor numérico y unidad de tiempo; BR3: 'contraseña debe ser segura' carece de valores cuantitativos (longitud, cantidad de caracteres especiales, etc.)",
+      "recomendacion": "Especificar BR2 con valor y unidad: 'El link expira a los 30 minutos'; BR3 debe incluir valores numéricos: 'La contraseña debe tener mínimo 8 caracteres, incluir al menos 1 mayúscula, 1 número y 1 carácter especial'"
+    },
+    {
+      "regla": "NX-025",
+      "veredicto": "CUMPLE",
+      "evidencia": "Los términos clave se usan consistentemente: 'contraseña' (no se alterna con 'password' o 'clave'), 'link' (no se alterna con 'enlace'), 'usuario' (no se alterna con 'cliente' o 'persona'), 'correo' (consistente en BR1)"
+    },
+    {
+      "regla": "NX-030",
+      "veredicto": "INCUMPLE",
+      "evidencia": "escenarios: [] — No existe ningún escenario positivo. BR1, BR2 y BR3 no tienen validación mediante escenarios de éxito",
+      "recomendacion": "Crear escenarios positivos: 1) Usuario ingresa correo válido y recibe link funcional; 2) Usuario usa link dentro del tiempo de expiración y restablece contraseña exitosamente; 3) Nueva contraseña cumple política de seguridad y es aceptada"
+    },
+    {
+      "regla": "NX-031",
+      "veredicto": "INCUMPLE",
+      "evidencia": "escenarios: [] — No existe ningún escenario negativo. No hay validación de casos de rechazo/error para BR1 (correo inválido/no registrado), BR2 (link expirado), BR3 (contraseña débil)",
+      "recomendacion": "Crear escenarios negativos: 1) Usuario ingresa correo no registrado y recibe mensaje de error; 2) Usuario intenta usar link expirado y se rechaza; 3) Usuario ingresa contraseña que no cumple política de seguridad y se rechaza con mensaje específico"
+    },
+    {
+      "regla": "NX-032",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2 menciona expiración (valor temporal no especificado) sin escenarios de frontera; BR3 menciona seguridad de contraseña (valores no especificados) sin escenarios de límite; escenarios: [] — no hay pruebas de valores límite",
+      "recomendacion": "Una vez cuantificadas BR2 y BR3, crear escenarios de frontera: para BR2 (si expira a 30 min): probar a los 29:59 (válido), 30:00 (límite), 30:01 (inválido); para BR3 (si mínimo 8 caracteres): probar con 7, 8 y 9 caracteres"
+    },
+    {
+      "regla": "NX-033",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja autenticación (recuperación de contraseña) y datos sensibles (credenciales); BR1 menciona envío de link, BR3 menciona contraseña; escenarios: [] — No hay escenarios de seguridad; no hay referencia a OWASP",
+      "recomendacion": "Agregar escenarios de seguridad con referencia OWASP: 1) Validar protección contra enumeración de usuarios (OWASP A01:2021 Broken Access Control); 2) Validar token de recuperación único y de un solo uso (OWASP A07:2021 Identification and Authentication Failures); 3) Validar almacenamiento seguro de contraseña con hashing (OWASP A02:2021 Cryptographic Failures); 4) Validar protección contra fuerza bruta en solicitudes de recuperación (OWASP A07:2021)"
+    },
+    {
+      "regla": "NX-034",
+      "veredicto": "INCUMPLE",
+      "evidencia": "No hay especificación de mensajes de error en ninguna BR ni criterio de aceptación; CA1 solo menciona 'sin problemas' sin definir mensajes para casos de fallo",
+      "recomendacion": "Especificar mensajes de error textuales para: 1) Correo no registrado: 'Si existe una cuenta asociada, recibirás un correo de recuperación' (evitar enumeración); 2) Link expirado: 'Este enlace ha expirado. Solicita uno nuevo'; 3) Contraseña débil: 'La contraseña debe tener al menos [X] caracteres, [Y] mayúsculas, [Z] números y [W] caracteres especiales'"
+    },
+    {
+      "regla": "NX-035",
+      "veredicto": "INCUMPLE",
+      "evidencia": "escenarios: [] — No hay escenarios con datos de prueba; las BRs no proporcionan ejemplos concretos ni reglas de derivación de datos de prueba (no hay ejemplos de correos válidos, formatos de link, ejemplos de contraseñas seguras/inseguras)",
+      "recomendacion": "Incluir datos de prueba derivables: 1) Ejemplo de correo válido: usuario@dominio.com; 2) Formato de link esperado: https://sistema.com/reset?token=[UUID]; 3) Ejemplos de contraseñas válidas: 'Abc123!@#', e inválidas: 'abc' (muy corta), '12345678' (sin letras), 'abcdefgh' (sin números ni especiales)"
+    },
+    {
+      "regla": "NX-040",
+      "veredicto": "INCUMPLE",
+      "evidencia": "No hay sección de requisitos no funcionales en la HU; no se especifica tiempo de respuesta para envío de correo, tiempo máximo de procesamiento, límite de intentos de recuperación por periodo, etc.",
+      "recomendacion": "Declarar NFRs o N/A explícito: 1) Tiempo de envío de correo: máximo 60 segundos; 2) Disponibilidad del servicio de recuperación: 99.5%; 3) Límite de solicitudes: máximo 3 intentos por hora por dirección IP; 4) Tiempo de carga de página de restablecimiento: máximo 2 segundos"
+    },
+    {
+      "regla": "NX-041",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU implica interfaz de usuario (formulario de ingreso de correo, página de restablecimiento de contraseña) pero no hay consideración de accesibilidad ni declaración N/A; no hay referencia a WCAG 2.2",
+      "recomendacion": "Declarar requisitos de accesibilidad WCAG 2.2: 1) Formulario de correo debe ser navegable por teclado (criterio 2.1.1); 2) Mensajes de error deben ser anunciados por lectores de pantalla (criterio 4.1.3); 3) Contraste de texto mínimo 4.5:1 (criterio 1.4.3); 4) Campos de formulario con etiquetas asociadas (criterio 1.3.1); o justificar N/A si aplica"
+    },
+    {
+      "regla": "NX-042",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja credenciales (contraseñas) y datos sensibles (correo electrónico asociado a cuenta); BR1, BR2, BR3 tratan con autenticación; no hay requisito de auditoría/logging de estos eventos de seguridad",
+      "recomendacion": "Agregar requisito de auditoría: 'Todas las solicitudes de recuperación de contraseña deben registrarse con: timestamp, correo solicitado (hash), IP origen, resultado (éxito/fallo), y motivo de fallo. Los restablecimientos exitosos deben generar notificación al correo del usuario. Los logs deben conservarse por 90 días y cumplir con retención regulatoria'"
+    },
+    {
+      "regla": "NX-043",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja datos personales (correo electrónico) y credenciales sin identificar normativa aplicable; no hay mención de GDPR, LGPD, CCPA u otra regulación de protección de datos; no hay declaración N/A",
+      "recomendacion": "Identificar y declarar cumplimiento regulatorio aplicable: 1) GDPR Art. 32 (seguridad del procesamiento) si opera en UE; 2) LGPD Art. 46 (seguridad de datos) si opera en Brasil; 3) OWASP ASVS v4.0 nivel 2 para autenticación; 4) ISO 27001 controles A.9.4.3 (gestión de contraseñas); o declarar N/A con justificación si no aplica ninguna regulación específica al contexto del sistema"
+    }
+  ],
+  "puntos_obtenidos": 22,
+  "puntos_totales": 93,
+  "rhi": 23.7,
+  "dictamen": "NO_APTO",
+  "criticos_incumplidos": [
+    "NX-005",
+    "NX-006",
+    "NX-021",
+    "NX-030",
+    "NX-031",
+    "NX-033"
+  ],
+  "resumen_por_severidad": {
+    "CRITICO": {
+      "cumple": 3,
+      "incumple": 6,
+      "no_aplica": 0
+    },
+    "ALTO": {
+      "cumple": 1,
+      "incumple": 9,
+      "no_aplica": 0
+    },
+    "MEDIO": {
+      "cumple": 2,
+      "incumple": 6,
+      "no_aplica": 0
+    },
+    "BAJO": {
+      "cumple": 0,
+      "incumple": 2,
+      "no_aplica": 0
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "id": "HU_PASS_01",
+  "nombre": "Recuperar contraseña",
+  "descripcion": {
+    "como": "usuario",
+    "quiero": "recuperar mi contraseña",
+    "para": "poder entrar al sistema"
+  },
+  "epica": "NO_ESPECIFICADO",
+  "criterios_aceptacion": [
+    {
+      "id": "CA1",
+      "descripcion": "el usuario puede recuperar su contraseña sin problemas",
+      "notas": "Criterio vago no verificable; se registra como llegó en la fuente"
+    }
+  ],
+  "reglas_negocio": [
+    {
+      "id": "BR1",
+      "descripcion": "El usuario ingresa su correo y recibe un link para restablecer la contraseña",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "El link expira rápido por seguridad",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "La nueva contraseña debe ser segura",
+      "origen": "inferida_de_texto"
+    }
+  ],
+  "escenarios": [],
+  "prioridad": "Alta",
+  "estimaciones": "NO_ESPECIFICADO",
+  "dependencias": "NO_ESPECIFICADO",
+  "fuera_alcance": "NO_ESPECIFICADO",
+  "notas": "El documento fuente no incluye escenarios Gherkin estructurados. Las reglas de negocio fueron extraídas de viñetas descriptivas. El criterio de aceptación es demasiado vago para ser verificable y no se descompone en escenarios concretos.",
+  "_meta": {
+    "fuente": "HU_PASS_01_original.md",
+    "version": 1,
+    "campos_no_especificados": [
+      "epica",
+      "estimaciones",
+      "dependencias",
+      "fuera_alcance"
+    ],
+    "supuestos_normalizacion": [
+      "Las tres viñetas del documento se interpretaron como reglas de negocio (BR1-BR3) con origen 'inferida_de_texto'",
+      "El criterio de aceptación genérico se registró como CA1 pero se marca en notas como no verificable",
+      "No se generaron escenarios porque el documento no contiene estructura Gherkin ni pasos concretos",
+      "La prioridad 'Alta' se preservó tal como aparece en la fuente"
+    ]
+  }
+}

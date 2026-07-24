@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qasl://nexus/activos/1.0",
+  "title": "Activos de Prueba Generados (suites, precondiciones, test cases)",
+  "type": "object",
+  "required": ["hu_id", "suites", "precondiciones", "test_cases"],
+  "properties": {
+    "hu_id": { "type": "string" },
+    "suites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ts_id", "nombre", "categoria"],
+        "properties": {
+          "ts_id": { "type": "string", "description": "Determinista: {HU}_TS{NN}" },
+          "nombre": { "type": "string" },
+          "categoria": { "enum": ["Funcional", "Funcional - Negativa", "Seguridad - OWASP", "Integracion"] },
+          "tecnica": { "type": "string" },
+          "prioridad": { "type": "string" },
+          "framework_sugerido": { "type": "string" }
+        }
+      }
+    },
+    "precondiciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["prc_id", "titulo", "categoria"],
+        "properties": {
+          "prc_id": { "type": "string", "description": "Determinista: {HU}_PRC{NN}" },
+          "titulo": { "type": "string" },
+          "descripcion": { "type": "string" },
+          "pasos_setup": { "type": "array", "items": { "type": "string" } },
+          "datos_requeridos": { "type": "string" },
+          "estado_sistema": { "type": "string" },
+          "categoria": { "type": "string" },
+          "reutilizable": { "type": "boolean" }
+        }
+      }
+    },
+    "test_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tc_id", "ts_id", "titulo", "escenario_id", "brs_cubiertas", "pasos"],
+        "properties": {
+          "tc_id": { "type": "string", "description": "Determinista: {HU}_TC_{E} — idempotente por diseño" },
+          "ts_id": { "type": "string" },
+          "titulo": { "type": "string" },
+          "tipo_prueba": { "type": "string" },
+          "escenario_id": { "type": "string" },
+          "brs_cubiertas": { "type": "array", "items": { "type": "string" } },
+          "prcs_asociadas": { "type": "array", "items": { "type": "string" } },
+          "tecnica": { "type": "string" },
+          "origen": { "enum": ["original", "gap_sugerido"] },
+          "es_smoke": { "type": "boolean" },
+          "prioridad": { "type": "string" },
+          "complejidad": { "type": "string" },
+          "tiempo_estimado": { "type": "string" },
+          "datos_entrada": { "type": "string" },
+          "resultado_esperado": { "type": "string" },
+          "pasos": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["numero", "accion", "resultado_esperado"],
+              "properties": {
+                "numero": { "type": "integer" },
+                "accion": { "type": "string" },
+                "datos": { "type": "string" },
+                "resultado_esperado": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# ============================================================
+# POLÍTICA VCR OFICIAL — QASL Shift-Left Testing Framework
+# Fuente: guia-estimacion-vcr.html (escala consistente con
+# plantilla US ISTQB y ejemplos). Decisión D1 del blueprint.
+# ============================================================
+
+version: 1.0.0
+momento: Planning Poker (primera ceremonia del sprint, HU ya certificada por NEXUS)
+
+escalas:
+  story_points: [1, 2, 3, 5, 8, 13]     # tabla orientativa: 1≈4h · 2≈8h · 3≈16h · 5≈32h · 8≈64h · 13>96h (dividir)
+  valor: {min: 1, max: 3}                # beneficio de negocio
+  costo: {min: 1, max: 3}                # costo de ejecutar las pruebas MANUALES en cada ciclo
+  probabilidad: {min: 1, max: 3}         # probabilidad de falla en producción
+  impacto: {min: 1, max: 3}              # gravedad si ocurre (legal, reputacional, negocio)
+
+formulas:
+  riesgo: "R = P × I"                    # rango 1-9
+  vcr_total: "VCR = V + C + R"           # rango 3-15
+
+decision:
+  automatizar_si: "VCR >= 9"             # deuda técnica → suite de regresión, prioridad alta
+  manual_si: "VCR < 9"                   # ciclos manuales, revisable si cambia el riesgo
+
+anclas:
+  # Ejemplos de referencia para puntuar consistente (definir por equipo al inicio del proyecto)
+  valor_3: "Funcionalidad crítica de negocio — sin ella no hay operación (ej. login, pago)"
+  valor_1: "Mejora cosmética o informativa"
+  costo_3: "Prueba manual requiere configuración compleja, datos difíciles, muchos pasos repetitivos"
+  costo_1: "Prueba manual trivial, sin datos especiales"
+  probabilidad_3: "Integración nueva, lógica compleja, cambios recientes"
+  probabilidad_1: "Funcionalidad estable, sin cambios"
+  impacto_3: "Falla expone datos sensibles, bloquea operación o tiene consecuencia legal"
+  impacto_1: "Falla con workaround simple, sin exposición"
+
+buenas_practicas:
+  - Definir anclas al inicio del proyecto
+  - Planning Poker con todo el equipo (QA, Dev, PO, SM)
+  - Registrar valores y cálculo en la HU para auditoría
+  - Revisar el VCR si cambian dependencias o riesgos

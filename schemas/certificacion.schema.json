@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qasl://nexus/certificacion/1.0",
+  "title": "Resultado de Certificación NX",
+  "type": "object",
+  "required": ["hu_id", "version_hu", "version_catalogo", "evaluaciones", "rhi", "dictamen"],
+  "properties": {
+    "hu_id": { "type": "string" },
+    "version_hu": { "type": "integer" },
+    "version_catalogo": { "type": "string" },
+    "evaluaciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["regla", "veredicto"],
+        "properties": {
+          "regla": { "type": "string", "pattern": "^NX-\\d{3}$" },
+          "veredicto": { "enum": ["CUMPLE", "INCUMPLE", "NO_APLICA"] },
+          "evidencia": { "type": "string" },
+          "recomendacion": { "type": "string" },
+          "justificacion_na": { "type": "string" }
+        }
+      }
+    },
+    "rhi": { "type": "number", "minimum": 0, "maximum": 100 },
+    "puntos_obtenidos": { "type": "number" },
+    "puntos_totales": { "type": "number" },
+    "dictamen": { "enum": ["CERTIFICADO", "APTO_PARA_DESARROLLO", "REQUIERE_REVISION", "NO_APTO"] },
+    "criticos_incumplidos": { "type": "array", "items": { "type": "string" } },
+    "resumen_por_severidad": {
+      "type": "object",
+      "properties": {
+        "CRITICO": { "$ref": "#/$defs/conteo" },
+        "ALTO": { "$ref": "#/$defs/conteo" },
+        "MEDIO": { "$ref": "#/$defs/conteo" },
+        "BAJO": { "$ref": "#/$defs/conteo" }
+      }
+    }
+  },
+  "$defs": {
+    "conteo": {
+      "type": "object",
+      "properties": { "cumple": { "type": "integer" }, "incumple": { "type": "integer" }, "no_aplica": { "type": "integer" } }
+    }
+  }
+}

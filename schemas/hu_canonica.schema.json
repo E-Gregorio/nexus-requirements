@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qasl://nexus/hu_canonica/1.0",
+  "title": "HU Canónica — espejo de los 16 campos de la plantilla US ISTQB",
+  "type": "object",
+  "required": ["id", "nombre", "descripcion", "reglas_negocio", "escenarios", "_meta"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^HU_[A-Z0-9]+_\\d{2}$" },
+    "nombre": { "type": "string", "minLength": 3 },
+    "epica": {
+      "anyOf": [
+        { "type": "object", "required": ["id", "nombre"], "properties": { "id": { "type": "string", "pattern": "^EP-\\d{3}$" }, "nombre": { "type": "string" } } },
+        { "const": "NO_ESPECIFICADO" }
+      ]
+    },
+    "prioridad": { "anyOf": [{ "type": "string" }, { "const": "NO_ESPECIFICADO" }] },
+    "estado": { "anyOf": [{ "type": "string" }, { "const": "NO_ESPECIFICADO" }] },
+    "descripcion": {
+      "type": "object",
+      "required": ["como", "quiero", "para"],
+      "properties": {
+        "como": { "type": "string" }, "quiero": { "type": "string" }, "para": { "type": "string" }
+      }
+    },
+    "usuarios_roles": { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "const": "NO_ESPECIFICADO" }] },
+    "reglas_negocio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "descripcion"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^BR\\d+$" },
+          "descripcion": { "type": "string" },
+          "tipo": { "enum": ["acceso", "visualizacion", "funcionalidad", "datos", "seguridad", "no_clasificada"] },
+          "origen": { "enum": ["explicita", "inferida_de_texto"] }
+        }
+      }
+    },
+    "precondiciones": { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "const": "NO_ESPECIFICADO" }] },
+    "dependencias": { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "const": "NO_ESPECIFICADO" }] },
+    "estimaciones": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "sp": { "type": "integer" },
+            "valor": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "costo": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "probabilidad": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "impacto": { "type": "integer", "minimum": 1, "maximum": 3 }
+          }
+        },
+        { "const": "NO_ESPECIFICADO" }
+      ]
+    },
+    "escenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "titulo", "pasos"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^E\\d+$" },
+          "titulo": { "type": "string" },
+          "pasos": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["tipo", "texto"],
+              "properties": {
+                "tipo": { "enum": ["DADO", "CUANDO", "ENTONCES", "Y"] },
+                "texto": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dentro_alcance": { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "const": "NO_ESPECIFICADO" }] },
+    "fuera_alcance": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "object", "properties": { "item": { "type": "string" }, "cubierto_por": { "type": "string" } } } },
+        { "const": "NO_ESPECIFICADO" }
+      ]
+    },
+    "referencias": { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "const": "NO_ESPECIFICADO" }] },
+    "notas": { "type": "string" },
+    "_meta": {
+      "type": "object",
+      "required": ["campos_no_especificados", "fuente", "version"],
+      "properties": {
+        "campos_no_especificados": { "type": "array", "items": { "type": "string" } },
+        "supuestos_normalizacion": { "type": "array", "items": { "type": "string" } },
+        "fuente": { "type": "string" },
+        "version": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

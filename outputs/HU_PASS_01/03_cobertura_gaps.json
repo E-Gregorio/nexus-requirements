@@ -1,0 +1,483 @@
+{
+  "hu_id": "HU_PASS_01",
+  "coberturas": [
+    {
+      "br_id": "BR1",
+      "escenarios_relacionados": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false,
+      "notas": "No existen escenarios que validen el envío del correo con el link de restablecimiento"
+    },
+    {
+      "br_id": "BR2",
+      "escenarios_relacionados": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false,
+      "notas": "No existen escenarios que validen la expiración del link de restablecimiento"
+    },
+    {
+      "br_id": "BR3",
+      "escenarios_relacionados": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false,
+      "notas": "No existen escenarios que validen las reglas de seguridad de la contraseña"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "br_id": "BR1",
+      "tipo_gap": "falta_positivo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario positivo que valide que un usuario registrado recibe correctamente el correo con el link de restablecimiento de contraseña",
+      "escenario_sugerido": {
+        "titulo": "E1 - Usuario registrado solicita restablecimiento de contraseña exitosamente",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez@ejemplo.com' existe en el sistema"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de recuperación de contraseña"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'juan.perez@ejemplo.com' y presiona 'Enviar'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Se ha enviado un correo con instrucciones para restablecer tu contraseña'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario recibe un correo con un link de restablecimiento válido"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-002",
+      "br_id": "BR1",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario negativo que valide el comportamiento cuando se solicita restablecimiento para un correo no registrado",
+      "escenario_sugerido": {
+        "titulo": "E2 - Usuario intenta restablecer contraseña con correo no registrado",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el correo 'noexiste@ejemplo.com' NO está registrado en el sistema"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de recuperación de contraseña"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'noexiste@ejemplo.com' y presiona 'Enviar'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Se ha enviado un correo con instrucciones para restablecer tu contraseña'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "NO se envía ningún correo electrónico"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-003",
+      "br_id": "BR1",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta validación anti-enumeración de usuarios (OWASP A01:2021 Broken Access Control). El sistema debe responder igual para usuarios existentes y no existentes para evitar revelar qué correos están registrados",
+      "escenario_sugerido": {
+        "titulo": "E3 - Sistema previene enumeración de usuarios mediante respuesta uniforme",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el atacante intenta enumerar usuarios del sistema"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "solicita restablecimiento para 'usuario.existe@ejemplo.com' (registrado)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "solicita restablecimiento para 'no.existe@ejemplo.com' (NO registrado)"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "ambas solicitudes devuelven el mismo mensaje genérico"
+          },
+          {
+            "tipo": "Y",
+            "texto": "ambas solicitudes tienen el mismo tiempo de respuesta (± 50ms)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO revela en ningún mensaje si el usuario existe o no"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-004",
+      "br_id": "BR2",
+      "tipo_gap": "falta_positivo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario positivo que valide el uso exitoso del link de restablecimiento dentro del tiempo válido",
+      "escenario_sugerido": {
+        "titulo": "E4 - Usuario usa link de restablecimiento antes de su expiración",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha solicitado restablecer su contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el link fue generado hace menos de 30 minutos [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario accede al link de restablecimiento"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el formulario para ingresar la nueva contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-005",
+      "br_id": "BR2",
+      "tipo_gap": "falta_negativo",
+      "severidad": "CRITICO",
+      "descripcion": "No existe escenario negativo que valide que los links expirados son rechazados correctamente",
+      "escenario_sugerido": {
+        "titulo": "E5 - Sistema rechaza link de restablecimiento expirado",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha solicitado restablecer su contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el link fue generado hace más de 30 minutos [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario accede al link de restablecimiento"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'El enlace de restablecimiento ha expirado. Por favor, solicita uno nuevo.'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO permite ingresar una nueva contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-006",
+      "br_id": "BR2",
+      "tipo_gap": "falta_limite",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario que valide el límite exacto de expiración del link (frontera temporal)",
+      "escenario_sugerido": {
+        "titulo": "E6 - Validación del límite exacto de expiración del link",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha solicitado restablecer su contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el link fue generado hace exactamente 30 minutos [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario accede al link de restablecimiento"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'El enlace de restablecimiento ha expirado. Por favor, solicita uno nuevo.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-007",
+      "br_id": "BR2",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta validación de que los links de restablecimiento son de un solo uso (OWASP A07:2021 Identification and Authentication Failures). Un link no debe reutilizarse después de ser usado exitosamente",
+      "escenario_sugerido": {
+        "titulo": "E7 - Sistema invalida link de restablecimiento después de su primer uso exitoso",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha usado un link de restablecimiento exitosamente"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que la contraseña fue cambiada correctamente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el mismo usuario (o un atacante) intenta acceder nuevamente al mismo link"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Este enlace ya fue utilizado. Por favor, solicita uno nuevo si necesitas restablecer tu contraseña nuevamente.'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO permite ingresar una contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-008",
+      "br_id": "BR3",
+      "tipo_gap": "falta_positivo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario positivo que valide que una contraseña que cumple todos los requisitos de seguridad es aceptada",
+      "escenario_sugerido": {
+        "titulo": "E8 - Usuario establece nueva contraseña que cumple requisitos de seguridad",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha accedido a un link de restablecimiento válido"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa la contraseña 'P@ssw0rd2024!' que cumple: mínimo 12 caracteres, mayúsculas, minúsculas, números y caracteres especiales [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "Y",
+            "texto": "confirma la misma contraseña en el campo de confirmación"
+          },
+          {
+            "tipo": "Y",
+            "texto": "presiona 'Restablecer contraseña'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Tu contraseña ha sido restablecida exitosamente'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema permite al usuario iniciar sesión con la nueva contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-009",
+      "br_id": "BR3",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario negativo que valide el rechazo de contraseñas que no cumplen los requisitos de seguridad",
+      "escenario_sugerido": {
+        "titulo": "E9 - Sistema rechaza contraseña que no cumple requisitos de seguridad",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha accedido a un link de restablecimiento válido"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa la contraseña 'abc123' que NO cumple los requisitos de seguridad"
+          },
+          {
+            "tipo": "Y",
+            "texto": "presiona 'Restablecer contraseña'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'La contraseña debe tener mínimo 12 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales' [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO cambia la contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-010",
+      "br_id": "BR3",
+      "tipo_gap": "falta_limite",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario que valide el límite exacto de longitud mínima de contraseña",
+      "escenario_sugerido": {
+        "titulo": "E10 - Validación del límite exacto de longitud mínima de contraseña",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha accedido a un link de restablecimiento válido"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa una contraseña de exactamente 11 caracteres 'P@ssw0rd11!' (un carácter menos del mínimo) [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema rechaza la contraseña mostrando 'La contraseña debe tener mínimo 12 caracteres'"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa una contraseña de exactamente 12 caracteres 'P@ssw0rd123!' (mínimo exacto)"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema acepta la contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-011",
+      "br_id": "BR3",
+      "tipo_gap": "falta_negativo",
+      "severidad": "MEDIO",
+      "descripcion": "No existe escenario que valide el rechazo cuando las contraseñas ingresadas no coinciden en el campo de confirmación",
+      "escenario_sugerido": {
+        "titulo": "E11 - Sistema rechaza cuando contraseña y confirmación no coinciden",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha accedido a un link de restablecimiento válido"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'P@ssw0rd2024!' en el campo contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "ingresa 'P@ssw0rd2025!' en el campo confirmación (diferente)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "presiona 'Restablecer contraseña'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Las contraseñas no coinciden'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO cambia la contraseña"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-012",
+      "br_id": "BR4",
+      "tipo_gap": "falta_positivo",
+      "severidad": "MEDIO",
+      "descripcion": "No existe BR ni escenario que valide la protección contra ataques de fuerza bruta en la solicitud de restablecimiento (OWASP A07:2021)",
+      "escenario_sugerido": {
+        "titulo": "E12 - Sistema limita intentos de solicitud de restablecimiento para prevenir abuso",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que un usuario (o atacante) ha solicitado restablecimiento de contraseña 5 veces en 15 minutos [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta solicitar un sexto restablecimiento"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Has excedido el límite de solicitudes. Por favor, intenta nuevamente en 30 minutos.' [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO envía un nuevo correo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-013",
+      "br_id": "BR5",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "No existe BR ni escenario que valide la auditoría de eventos de restablecimiento de contraseña (OWASP A09:2021 Security Logging and Monitoring Failures). Eventos críticos deben registrarse para detectar compromisos de cuenta",
+      "escenario_sugerido": {
+        "titulo": "E13 - Sistema registra eventos de restablecimiento de contraseña para auditoría",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el sistema tiene capacidad de auditoría habilitada"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "un usuario solicita restablecimiento de contraseña para 'usuario@ejemplo.com'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en el log de auditoría: timestamp, correo solicitado, IP origen, y resultado (enviado/bloqueado)"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario completa exitosamente el restablecimiento de contraseña"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en el log de auditoría: timestamp, usuario, IP origen, y evento 'contraseña restablecida exitosamente'"
+          }
+        ]
+      }
+    }
+  ],
+  "resumen": {
+    "total_brs": 3,
+    "brs_cubiertas_100": 0,
+    "brs_cubiertas_50": 0,
+    "brs_sin_cobertura": 3,
+    "cobertura_inicial_promedio": 0,
+    "cobertura_proyectada": 100,
+    "total_gaps": 13,
+    "gaps_criticos": 5,
+    "gaps_altos": 6,
+    "gaps_medios": 2,
+    "gaps_bajos": 0,
+    "escenarios_sugeridos": 13
+  },
+  "brs_mejoradas": [
+    {
+      "id": "BR1",
+      "descripcion": "El usuario ingresa su correo electrónico en el formulario de recuperación y el sistema envía un correo electrónico con un link de restablecimiento de contraseña. Si el correo no existe en el sistema, se muestra el mismo mensaje genérico de confirmación sin revelar si el usuario existe (anti-enumeración, OWASP A01:2021)."
+    },
+    {
+      "id": "BR2",
+      "descripcion": "El link de restablecimiento de contraseña expira después de 30 minutos [PROPUESTO] desde su generación por razones de seguridad. Después de este tiempo, el link es inválido y el usuario debe solicitar uno nuevo. El link también se invalida inmediatamente después de su primer uso exitoso (un solo uso)."
+    },
+    {
+      "id": "BR3",
+      "descripcion": "La nueva contraseña debe cumplir los siguientes requisitos de seguridad: mínimo 12 caracteres [PROPUESTO], incluir al menos una letra mayúscula, una letra minúscula, un número y un carácter especial [PROPUESTO]. El usuario debe confirmar la contraseña ingresándola dos veces y ambas deben coincidir."
+    },
+    {
+      "id": "BR4",
+      "descripcion": "[NUEVA - PROPUESTA] El sistema debe limitar el número de solicitudes de restablecimiento de contraseña a un máximo de 5 intentos por dirección IP en un período de 15 minutos [PROPUESTO] para prevenir abuso y ataques de fuerza bruta (OWASP A07:2021). Después de exceder el límite, el usuario debe esperar 30 minutos [PROPUESTO] antes de poder realizar una nueva solicitud."
+    },
+    {
+      "id": "BR5",
+      "descripcion": "[NUEVA - PROPUESTA] El sistema debe registrar en logs de auditoría todos los eventos relacionados con el restablecimiento de contraseña, incluyendo: solicitudes de restablecimiento (exitosas y bloqueadas), accesos a links (válidos, expirados, ya usados), cambios de contraseña exitosos y rechazados, con información de timestamp, usuario/correo, IP origen y resultado. Los logs deben conservarse por un mínimo de 90 días [PROPUESTO] para cumplir con requisitos de auditoría de seguridad (OWASP A09:2021)."
+    }
+  ]
+}

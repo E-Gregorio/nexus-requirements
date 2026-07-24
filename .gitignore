@@ -1,0 +1,16 @@
+# Secretos — NUNCA subir
+.env
+engine/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

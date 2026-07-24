@@ -1,0 +1,138 @@
+{
+  "hu_id": "HU_PASS_01",
+  "coberturas": [
+    { "br_id": "BR1", "escenarios_positivos": [], "escenarios_negativos": [], "cobertura_porcentaje": 0, "justificacion": "Sin escenarios documentados que validen la solicitud de restablecimiento" },
+    { "br_id": "BR2", "escenarios_positivos": [], "escenarios_negativos": [], "cobertura_porcentaje": 0, "justificacion": "La expiración del link no tiene ningún escenario; además el umbral no está cuantificado" },
+    { "br_id": "BR3", "escenarios_positivos": [], "escenarios_negativos": [], "cobertura_porcentaje": 0, "justificacion": "La política de contraseña no tiene escenarios ni criterios verificables" }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001", "br_id": "BR1", "tipo_gap": "falta_positivo", "severidad": "ALTO",
+      "descripcion": "Falta escenario positivo de solicitud exitosa de restablecimiento",
+      "owasp": "",
+      "escenario_sugerido": {
+        "titulo": "E1 - Solicitud exitosa de restablecimiento",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el usuario está registrado con una cuenta activa y correo válido" },
+          { "tipo": "CUANDO", "texto": "ingresa su correo en 'Olvidé mi contraseña' y presiona Enviar" },
+          { "tipo": "ENTONCES", "texto": "el sistema envía un correo con un link de restablecimiento con token único y muestra el mensaje 'Si el correo está registrado, recibirá un enlace de recuperación'" },
+          { "tipo": "Y", "texto": "el evento queda registrado en el log de auditoría" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-002", "br_id": "BR1", "tipo_gap": "falta_negativo", "severidad": "CRITICO",
+      "descripcion": "Falta escenario negativo: correo no registrado. Riesgo de enumeración de usuarios si el mensaje revela existencia de la cuenta",
+      "owasp": "A07:2021",
+      "escenario_sugerido": {
+        "titulo": "E2 - Correo no registrado (anti-enumeración)",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el correo ingresado NO corresponde a ningún usuario registrado" },
+          { "tipo": "CUANDO", "texto": "solicita el restablecimiento" },
+          { "tipo": "ENTONCES", "texto": "el sistema muestra EXACTAMENTE el mismo mensaje genérico ('Si el correo está registrado, recibirá un enlace de recuperación') y NO envía ningún correo" },
+          { "tipo": "Y", "texto": "no revela por tiempo de respuesta ni por mensaje si la cuenta existe" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-003", "br_id": "BR2", "tipo_gap": "falta_positivo", "severidad": "ALTO",
+      "descripcion": "Falta escenario positivo: restablecimiento dentro de la vigencia del link",
+      "owasp": "",
+      "escenario_sugerido": {
+        "titulo": "E3 - Restablecimiento exitoso dentro de la vigencia",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el usuario recibió un link generado hace menos de 30 minutos [VALOR PROPUESTO — confirmar con negocio]" },
+          { "tipo": "CUANDO", "texto": "accede al link y define una nueva contraseña que cumple la política" },
+          { "tipo": "ENTONCES", "texto": "el sistema actualiza la contraseña, invalida el token y muestra 'Su contraseña fue restablecida correctamente'" },
+          { "tipo": "Y", "texto": "permite iniciar sesión con la nueva contraseña" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-004", "br_id": "BR2", "tipo_gap": "falta_negativo", "severidad": "CRITICO",
+      "descripcion": "Falta escenario negativo: link expirado",
+      "owasp": "A07:2021",
+      "escenario_sugerido": {
+        "titulo": "E4 - Link expirado",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el link fue generado hace más de 30 minutos [VALOR PROPUESTO]" },
+          { "tipo": "CUANDO", "texto": "el usuario accede al link" },
+          { "tipo": "ENTONCES", "texto": "el sistema muestra 'El enlace ha expirado. Solicite uno nuevo' y NO permite definir contraseña" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-005", "br_id": "BR2", "tipo_gap": "falta_limite", "severidad": "ALTO",
+      "descripcion": "Falta escenario de valores límite sobre el umbral de expiración",
+      "owasp": "",
+      "escenario_sugerido": {
+        "titulo": "E5 - Frontera de expiración del link",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que existen links generados hace 29:59 y hace 30:01 [frontera del VALOR PROPUESTO de 30 min]" },
+          { "tipo": "CUANDO", "texto": "el usuario accede a cada uno" },
+          { "tipo": "ENTONCES", "texto": "el de 29:59 permite restablecer y el de 30:01 es rechazado como expirado" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-006", "br_id": "BR3", "tipo_gap": "falta_positivo", "severidad": "ALTO",
+      "descripcion": "Falta escenario positivo: nueva contraseña que cumple la política (política sin cuantificar en la HU)",
+      "owasp": "",
+      "escenario_sugerido": {
+        "titulo": "E6 - Nueva contraseña válida según política",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el usuario accedió con un link vigente" },
+          { "tipo": "CUANDO", "texto": "define una contraseña de mínimo 8 caracteres con mayúscula, minúscula y número [POLÍTICA PROPUESTA — confirmar con negocio]" },
+          { "tipo": "ENTONCES", "texto": "el sistema acepta la contraseña y completa el restablecimiento" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-007", "br_id": "BR3", "tipo_gap": "falta_negativo", "severidad": "CRITICO",
+      "descripcion": "Falta escenario negativo: contraseña que no cumple la política",
+      "owasp": "A07:2021",
+      "escenario_sugerido": {
+        "titulo": "E7 - Contraseña débil rechazada",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el usuario accedió con un link vigente" },
+          { "tipo": "CUANDO", "texto": "define una contraseña que incumple la política (7 caracteres, sin mayúscula, sin número o vacía)" },
+          { "tipo": "ENTONCES", "texto": "el sistema la rechaza con el mensaje 'La contraseña no cumple los requisitos: mínimo 8 caracteres, mayúscula, minúscula y número' y no la actualiza" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-008", "br_id": "BR2", "tipo_gap": "falta_seguridad", "severidad": "CRITICO",
+      "descripcion": "El token debe ser de un solo uso e impredecible; sin escenario que lo valide",
+      "owasp": "A07:2021",
+      "escenario_sugerido": {
+        "titulo": "E8 - Token de un solo uso",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que el usuario ya restableció su contraseña usando el link" },
+          { "tipo": "CUANDO", "texto": "intenta reutilizar el mismo link" },
+          { "tipo": "ENTONCES", "texto": "el sistema lo rechaza con 'El enlace ya fue utilizado' y no permite un segundo restablecimiento" }
+        ]
+      }
+    },
+    {
+      "id": "GAP-009", "br_id": "BR1", "tipo_gap": "falta_seguridad", "severidad": "CRITICO",
+      "descripcion": "Manejo de credenciales sin requisito de auditoría (solicitudes y cambios deben quedar registrados)",
+      "owasp": "A09:2021",
+      "escenario_sugerido": {
+        "titulo": "E9 - Auditoría de solicitudes y cambios",
+        "pasos": [
+          { "tipo": "DADO", "texto": "que ocurre cualquier solicitud de restablecimiento o cambio de contraseña (exitoso o fallido)" },
+          { "tipo": "CUANDO", "texto": "el evento se procesa" },
+          { "tipo": "ENTONCES", "texto": "queda registrado en el log de auditoría con fecha/hora, correo, IP de origen y resultado del evento" }
+        ]
+      }
+    }
+  ],
+  "resumen": {
+    "total_brs": 3,
+    "cobertura_inicial_promedio": 0.0,
+    "cobertura_proyectada": 100.0,
+    "total_gaps": 9,
+    "gaps_por_severidad": { "CRITICO": 5, "ALTO": 4, "MEDIO": 0, "BAJO": 0 },
+    "nota": "Cobertura = promedio de cobertura semántica por BR (no conteo de escenarios). Proyectada: con E1-E9 cada BR queda con positivo + negativo, BR2 con límite, y seguridad/auditoría cubiertas."
+  }
+}

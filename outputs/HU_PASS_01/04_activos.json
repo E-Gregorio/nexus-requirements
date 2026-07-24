@@ -1,0 +1,518 @@
+{
+  "hu_id": "HU_PASS_01",
+  "vcr_propuesto": {
+    "valor": 3,
+    "costo": 2,
+    "probabilidad": 3,
+    "impacto": 3,
+    "justificacion": "Valor=3: recuperación de contraseña es funcionalidad crítica de acceso. Costo=2: requiere setup de correo, base de datos y validaciones de tiempo. Probabilidad=3: flujo usado frecuentemente por usuarios que olvidan credenciales. Impacto=3: fallo bloquea acceso de usuarios y expone riesgos de seguridad OWASP A01, A07, A09."
+  },
+  "suites": [
+    {
+      "ts_id": "HU_PASS_01_TS01",
+      "nombre": "TS Flujos Positivos - Recuperación de Contraseña",
+      "descripcion": "Validación de flujos exitosos de recuperación de contraseña",
+      "tecnica_istqb": "Partición de Equivalencia, Valores Límite",
+      "framework_sugerido": "Playwright + Newman",
+      "prioridad": "Alta",
+      "categoria": "Funcional"
+    },
+    {
+      "ts_id": "HU_PASS_01_TS02",
+      "nombre": "TS Flujos Negativos - Recuperación de Contraseña",
+      "descripcion": "Validación de manejo de errores y límites en recuperación de contraseña",
+      "tecnica_istqb": "Valores Límite, Análisis Causa-Efecto",
+      "framework_sugerido": "Playwright + Newman",
+      "prioridad": "Alta",
+      "categoria": "Funcional - Negativa"
+    },
+    {
+      "ts_id": "HU_PASS_01_TS03",
+      "nombre": "TS Seguridad OWASP - Recuperación de Contraseña",
+      "descripcion": "Validación de controles de seguridad OWASP A01, A07, A09",
+      "tecnica_istqb": "Análisis de Riesgos OWASP",
+      "framework_sugerido": "Playwright + Newman + ZAP",
+      "prioridad": "Critica",
+      "categoria": "Seguridad - OWASP"
+    }
+  ],
+  "precondiciones": [
+    {
+      "prc_id": "HU_PASS_01_PRC01",
+      "titulo": "Usuario registrado activo en sistema",
+      "descripcion": "Usuario con cuenta activa para solicitar restablecimiento",
+      "pasos_setup": [
+        "Crear usuario 'juan.perez@ejemplo.com' con contraseña 'OldP@ss123!' en BD",
+        "Verificar estado cuenta = 'activo'",
+        "Configurar servidor SMTP mock para capturar correos"
+      ],
+      "datos_requeridos": "email: juan.perez@ejemplo.com, password_hash: bcrypt(OldP@ss123!), estado: activo, created_at: now()-30days",
+      "estado_sistema": "BD usuarios poblada, servidor SMTP mock activo, sistema en estado operativo",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_PASS_01_PRC02",
+      "titulo": "Link de restablecimiento válido generado",
+      "descripcion": "Token de restablecimiento activo dentro del tiempo de expiración",
+      "pasos_setup": [
+        "Ejecutar solicitud POST /api/password-reset con email 'juan.perez@ejemplo.com'",
+        "Extraer token del correo capturado en SMTP mock",
+        "Verificar timestamp token < 30 min"
+      ],
+      "datos_requeridos": "token: UUID v4, user_id: 12345, created_at: now()-15min, expires_at: now()+15min, used: false",
+      "estado_sistema": "Token activo en BD reset_tokens, correo enviado y capturado",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_PASS_01_PRC03",
+      "titulo": "Link de restablecimiento expirado pre-generado",
+      "descripcion": "Token de restablecimiento con timestamp mayor a 30 minutos",
+      "pasos_setup": [
+        "Insertar registro en BD reset_tokens con created_at = now()-35min",
+        "Configurar token='expired-token-uuid', user_id=12345, used=false"
+      ],
+      "datos_requeridos": "token: expired-token-uuid, user_id: 12345, created_at: now()-35min, expires_at: now()-5min, used: false",
+      "estado_sistema": "Token expirado presente en BD, sistema verifica expiración por diferencia temporal",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_PASS_01_PRC04",
+      "titulo": "Link de restablecimiento ya usado pre-generado",
+      "descripcion": "Token marcado como usado para validar rechazo de reutilización",
+      "pasos_setup": [
+        "Insertar registro en BD reset_tokens con used=true, used_at=now()-5min",
+        "Configurar token='used-token-uuid', user_id=12345"
+      ],
+      "datos_requeridos": "token: used-token-uuid, user_id: 12345, created_at: now()-20min, expires_at: now()+10min, used: true, used_at: now()-5min",
+      "estado_sistema": "Token marcado como usado en BD, sistema rechaza tokens con flag used=true",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_PASS_01_PRC05",
+      "titulo": "Rate limit de solicitudes cercano al máximo",
+      "descripcion": "Usuario con 4 solicitudes previas para validar límite de 5 intentos",
+      "pasos_setup": [
+        "Insertar 4 registros en BD rate_limit_log para IP '192.168.1.100'",
+        "Configurar timestamps en ventana de 15 min (now()-14min, now()-10min, now()-7min, now()-3min)"
+      ],
+      "datos_requeridos": "ip: 192.168.1.100, attempts: 4, window_start: now()-14min, timestamps: [now()-14min, now()-10min, now()-7min, now()-3min]",
+      "estado_sistema": "Rate limit cercano al máximo (4/5), próximo intento debe bloquearse",
+      "categoria": "Datos de Prueba",
+      "reutilizable": false
+    }
+  ],
+  "test_cases": [
+    {
+      "tc_id": "HU_PASS_01_TC_E1",
+      "ts_id": "HU_PASS_01_TS01",
+      "titulo": "Usuario registrado solicita restablecimiento exitosamente",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E1",
+      "brs_cubiertas": [
+        "BR1"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": true,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "email: juan.perez@ejemplo.com (registrado)",
+      "resultado_esperado": "Mensaje: 'Se ha enviado un correo con instrucciones para restablecer tu contraseña'. Correo recibido con link válido.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Navegar a página de recuperación e ingresar email",
+          "datos": "juan.perez@ejemplo.com",
+          "resultado_esperado": "Mensaje de confirmación genérico mostrado. Correo enviado capturado en SMTP mock con token activo."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E2",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Solicitud con correo no registrado",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E2",
+      "brs_cubiertas": [
+        "BR1"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "email: noexiste@ejemplo.com (no registrado)",
+      "resultado_esperado": "Mensaje: 'Se ha enviado un correo con instrucciones para restablecer tu contraseña'. Ningún correo enviado.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar email no registrado y enviar",
+          "datos": "noexiste@ejemplo.com",
+          "resultado_esperado": "Mismo mensaje genérico. Verificar SMTP mock sin correos nuevos."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E3",
+      "ts_id": "HU_PASS_01_TS03",
+      "titulo": "Prevención de enumeración de usuarios",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E3",
+      "brs_cubiertas": [
+        "BR1"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Critica",
+      "complejidad": "Media",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "email_existente: juan.perez@ejemplo.com, email_no_existente: atacante@ejemplo.com",
+      "resultado_esperado": "Ambas respuestas idénticas en mensaje y tiempo (± 50ms). Sin revelación de existencia de usuario.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Solicitar restablecimiento para usuario existente y medir tiempo",
+          "datos": "juan.perez@ejemplo.com",
+          "resultado_esperado": "Mensaje genérico, tiempo registrado T1."
+        },
+        {
+          "numero": 2,
+          "accion": "Solicitar restablecimiento para usuario no existente y medir tiempo",
+          "datos": "atacante@ejemplo.com",
+          "resultado_esperado": "Mismo mensaje, tiempo registrado T2. |T1 - T2| ≤ 50ms."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E4",
+      "ts_id": "HU_PASS_01_TS01",
+      "titulo": "Uso de link antes de expiración",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E4",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "token válido generado hace 15 min (< 30 min)",
+      "resultado_esperado": "Formulario de nueva contraseña mostrado.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Acceder a link con token válido",
+          "datos": "GET /reset-password?token={token_valido}",
+          "resultado_esperado": "Página con formulario de nueva contraseña renderizada."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E5",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Rechazo de link expirado",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E5",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC03"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Critica",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "token expirado generado hace 35 min (> 30 min)",
+      "resultado_esperado": "Mensaje: 'El enlace de restablecimiento ha expirado. Por favor, solicita uno nuevo.' Sin formulario.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Acceder a link con token expirado",
+          "datos": "GET /reset-password?token=expired-token-uuid",
+          "resultado_esperado": "Mensaje de expiración. Formulario no renderizado."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E6",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Validación de límite exacto de expiración (30 min)",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E6",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Valores Límite",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "token_29min: generado hace 29 min, token_30min: generado hace 30 min exacto, token_31min: generado hace 31 min",
+      "resultado_esperado": "29min: aceptado. 30min y 31min: rechazados con mensaje de expiración.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Acceder con token generado hace 29 min",
+          "datos": "token creado now()-29min",
+          "resultado_esperado": "Formulario mostrado (válido)."
+        },
+        {
+          "numero": 2,
+          "accion": "Acceder con token generado hace 30 min exacto",
+          "datos": "token creado now()-30min",
+          "resultado_esperado": "Mensaje: 'El enlace de restablecimiento ha expirado.' (rechazado)."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E7",
+      "ts_id": "HU_PASS_01_TS03",
+      "titulo": "Invalidación de link después de primer uso",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E7",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC04"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Critica",
+      "complejidad": "Media",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "token usado previamente (used=true en BD)",
+      "resultado_esperado": "Mensaje: 'Este enlace ya fue utilizado. Por favor, solicita uno nuevo si necesitas restablecer tu contraseña nuevamente.' Sin formulario.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Acceder a link ya usado",
+          "datos": "GET /reset-password?token=used-token-uuid",
+          "resultado_esperado": "Mensaje de link usado. Formulario no renderizado."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E8",
+      "ts_id": "HU_PASS_01_TS01",
+      "titulo": "Contraseña válida con todos los requisitos aceptada",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E8",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "password: P@ssw0rd2024! (12 caracteres, mayúscula, minúscula, número, especial), confirm_password: P@ssw0rd2024!",
+      "resultado_esperado": "Mensaje: 'Tu contraseña ha sido restablecida exitosamente'. Login exitoso con nueva contraseña.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar contraseña válida y confirmar",
+          "datos": "password: P@ssw0rd2024!, confirm: P@ssw0rd2024!",
+          "resultado_esperado": "Mensaje de éxito. Token marcado used=true en BD."
+        },
+        {
+          "numero": 2,
+          "accion": "Intentar login con nueva contraseña",
+          "datos": "email: juan.perez@ejemplo.com, password: P@ssw0rd2024!",
+          "resultado_esperado": "Login exitoso, sesión iniciada."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E9",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Rechazo de contraseña insegura",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E9",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "password: abc123 (no cumple requisitos: sin mayúsculas, especiales, <12 caracteres)",
+      "resultado_esperado": "Mensaje: 'La contraseña debe tener mínimo 12 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales'. Contraseña no cambiada.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar contraseña débil",
+          "datos": "password: abc123",
+          "resultado_esperado": "Mensaje de error con requisitos. BD sin cambios en password_hash."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E10",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Validación de límite exacto de longitud (12 caracteres)",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E10",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Valores Límite",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "password_11char: P@ssw0rd11! (11 caracteres), password_12char: P@ssw0rd123! (12 caracteres)",
+      "resultado_esperado": "11 caracteres: rechazada. 12 caracteres: aceptada.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar contraseña de 11 caracteres",
+          "datos": "P@ssw0rd11! (longitud=11)",
+          "resultado_esperado": "Mensaje: 'La contraseña debe tener mínimo 12 caracteres'. Rechazada."
+        },
+        {
+          "numero": 2,
+          "accion": "Ingresar contraseña de 12 caracteres",
+          "datos": "P@ssw0rd123! (longitud=12)",
+          "resultado_esperado": "Contraseña aceptada, cambio exitoso."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E11",
+      "ts_id": "HU_PASS_01_TS02",
+      "titulo": "Rechazo cuando contraseña y confirmación no coinciden",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E11",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Análisis Causa-Efecto",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "password: P@ssw0rd2024!, confirm_password: P@ssw0rd2025! (diferente)",
+      "resultado_esperado": "Mensaje: 'Las contraseñas no coinciden'. Contraseña no cambiada.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar contraseñas diferentes en ambos campos",
+          "datos": "password: P@ssw0rd2024!, confirm: P@ssw0rd2025!",
+          "resultado_esperado": "Mensaje de error. BD sin cambios en password_hash."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E12",
+      "ts_id": "HU_PASS_01_TS03",
+      "titulo": "Límite de solicitudes para prevenir abuso",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E12",
+      "brs_cubiertas": [
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC05"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Media",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "IP con 4 solicitudes previas en 15 min, 5ta solicitud debe bloquearse",
+      "resultado_esperado": "Mensaje: 'Has excedido el límite de solicitudes. Por favor, intenta nuevamente en 30 minutos.' Sin correo enviado.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Realizar 5ta solicitud desde IP con 4 intentos previos",
+          "datos": "IP: 192.168.1.100, email: cualquiera@ejemplo.com",
+          "resultado_esperado": "Mensaje de límite excedido. SMTP mock sin correos nuevos. Registro en rate_limit_log bloqueado."
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_PASS_01_TC_E13",
+      "ts_id": "HU_PASS_01_TS03",
+      "titulo": "Registro de eventos de auditoría",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E13",
+      "brs_cubiertas": [
+        "BR5"
+      ],
+      "prcs_asociadas": [
+        "HU_PASS_01_PRC01",
+        "HU_PASS_01_PRC02"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Media",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "Solicitud de restablecimiento y cambio exitoso de contraseña",
+      "resultado_esperado": "Logs de auditoría contienen: timestamp, correo, IP, resultado para solicitud y timestamp, usuario, IP, evento para cambio exitoso.",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Solicitar restablecimiento y verificar log",
+          "datos": "email: juan.perez@ejemplo.com, IP: 192.168.1.100",
+          "resultado_esperado": "Log contiene: {timestamp, email: juan.perez@ejemplo.com, ip: 192.168.1.100, resultado: enviado}."
+        },
+        {
+          "numero": 2,
+          "accion": "Completar cambio de contraseña y verificar log",
+          "datos": "token válido, nueva contraseña",
+          "resultado_esperado": "Log contiene: {timestamp, user_id: 12345, ip: 192.168.1.100, evento: contraseña_restablecida}."
+        }
+      ]
+    }
+  ]
+}

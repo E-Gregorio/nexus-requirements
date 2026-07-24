@@ -1,0 +1,259 @@
+# ============================================================
+# CATÁLOGO NX — La norma ejecutable
+# QASL Shift-Left Testing Framework · NEXUS Requirements
+# Versión: 0.1.0
+# Pesos RHI: CRITICO=5 · ALTO=3 · MEDIO=2 · BAJO=1
+# Dictamen: CERTIFICADO (RHI=100) | APTO (RHI>=90 y 0 críticos)
+#           REQUIERE_REVISION (RHI>=60 y 0 críticos) | NO_APTO (resto)
+# ============================================================
+
+meta:
+  nombre: Catálogo Normativo NX
+  version: 0.1.0
+  framework: QASL Shift-Left Testing Framework
+  fuentes:
+    - plantillaUS_ISQTB.html (16 campos canónicos)
+    - checklist-revision.html §2 (IEEE 1028 / ISO 20246)
+    - guia-estimacion-vcr.html (escala oficial 1-3)
+    - ISO/IEC/IEEE 29148:2018
+  pesos: { CRITICO: 5, ALTO: 3, MEDIO: 2, BAJO: 1 }
+
+reglas:
+
+  # ---------- FAMILIA ESTRUCTURA (evaluador: codigo) ----------
+  - id: NX-001
+    nombre: ID único con formato del proyecto
+    criterio: La HU declara un ID con formato HU_<MODULO>_<NN> (ej. HU_PASS_01).
+    severidad: CRITICO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo ID
+
+  - id: NX-002
+    nombre: Descripción Como/Quiero/Para
+    criterio: La descripción sigue la estructura Como <actor> / Quiero <acción> / Para <beneficio>.
+    severidad: CRITICO
+    familia: estructura
+    evaluador: codigo
+    referencia: ISO 29148 §9.4; plantillaUS_ISQTB campo Descripción
+
+  - id: NX-003
+    nombre: Épica vinculada con ID
+    criterio: La HU referencia su épica con ID (EP-NNN) y nombre.
+    severidad: ALTO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Épica
+
+  - id: NX-004
+    nombre: Prioridad declarada
+    criterio: Campo Prioridad presente (Alta/Media/Baja o equivalente del proyecto).
+    severidad: MEDIO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Prioridad
+
+  - id: NX-005
+    nombre: Reglas de negocio numeradas
+    criterio: Las reglas de negocio están identificadas y numeradas (BR1, BR2, ...).
+    severidad: CRITICO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Reglas de Negocio
+
+  - id: NX-006
+    nombre: Escenarios Gherkin numerados
+    criterio: Los criterios de aceptación están en formato Gherkin (DADO/CUANDO/ENTONCES) numerados (E1, E2, ...).
+    severidad: CRITICO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Escenarios de Prueba
+
+  - id: NX-007
+    nombre: Precondiciones declaradas
+    criterio: La HU declara precondiciones (sistemas, datos, ambiente) o "Ninguna" explícito.
+    severidad: ALTO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Precondiciones
+
+  - id: NX-008
+    nombre: Dependencias declaradas
+    criterio: Dependencias de otras HUs, servicios o integraciones declaradas o "Ninguna" explícito.
+    severidad: MEDIO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Dependencias
+
+  - id: NX-009
+    nombre: Estimaciones VCR completas
+    criterio: SP, Valor, Costo, Probabilidad e Impacto presentes en la escala oficial (V,C,P,I en 1-3).
+    severidad: ALTO
+    familia: estructura
+    evaluador: codigo
+    referencia: guia-estimacion-vcr; vcr_policy.yaml
+
+  - id: NX-010
+    nombre: Alcance declarado
+    criterio: Sección "Dentro del alcance" presente con items concretos.
+    severidad: ALTO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Dentro del Alcance
+
+  - id: NX-011
+    nombre: Fuera de alcance con referencia cruzada
+    criterio: Cada exclusión indica qué HU la cubre (o "sin cobertura planificada" explícito).
+    severidad: MEDIO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Fuera del Alcance
+
+  - id: NX-012
+    nombre: Usuarios/Roles identificados
+    criterio: Los roles que ejercitan la funcionalidad están identificados explícitamente.
+    severidad: ALTO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Usuarios/Roles
+
+  - id: NX-013
+    nombre: Referencias documentales
+    criterio: Casos de uso, documentos base o normativa aplicable referenciados.
+    severidad: BAJO
+    familia: estructura
+    evaluador: codigo
+    referencia: plantillaUS_ISQTB campo Referencias
+
+  # ---------- FAMILIA REDACCIÓN (evaluador: llm) ----------
+  - id: NX-020
+    nombre: Sin ambigüedad léxica
+    criterio: >
+      Ninguna BR ni escenario contiene términos no verificables sin cuantificación
+      (rápido, seguro, fácil, adecuado, amigable, eficiente, "sin problemas", etc.).
+    severidad: ALTO
+    familia: redaccion
+    evaluador: llm
+    referencia: ISO 29148 §5.2.5; checklist-revision §2.1
+
+  - id: NX-021
+    nombre: Verificabilidad
+    criterio: Toda BR es testeable — se puede diseñar una prueba capaz de refutarla.
+    severidad: CRITICO
+    familia: redaccion
+    evaluador: llm
+    referencia: ISO 29148 §5.2.6; checklist-revision §2.2
+
+  - id: NX-022
+    nombre: Sin contradicciones
+    criterio: No hay contradicciones entre BRs, escenarios, alcance y precondiciones.
+    severidad: CRITICO
+    familia: redaccion
+    evaluador: llm
+    referencia: checklist-revision §2.4
+
+  - id: NX-023
+    nombre: Atomicidad
+    criterio: La HU cubre una sola funcionalidad; si mezcla varias, se recomienda split.
+    severidad: ALTO
+    familia: redaccion
+    evaluador: llm
+    referencia: ISO 29148 (singularidad)
+
+  - id: NX-024
+    nombre: Valores cuantificados
+    criterio: Límites, tiempos y umbrales expresados con número y unidad (ej. "expira a los 30 minutos", no "expira rápido").
+    severidad: ALTO
+    familia: redaccion
+    evaluador: llm
+    referencia: ISO 29148 §5.2.7
+
+  - id: NX-025
+    nombre: Vocabulario consistente
+    criterio: El mismo concepto usa el mismo término en todo el documento.
+    severidad: MEDIO
+    familia: redaccion
+    evaluador: llm
+    referencia: ISO 29148 (consistencia)
+
+  # ---------- FAMILIA TESTABILIDAD (evaluador: mixto) ----------
+  - id: NX-030
+    nombre: Cobertura positiva por BR
+    criterio: Cada BR tiene al menos un escenario positivo que la valida.
+    severidad: CRITICO
+    familia: testabilidad
+    evaluador: mixto
+    referencia: Regla fundamental 1 BR = 2 escenarios
+
+  - id: NX-031
+    nombre: Cobertura negativa por BR
+    criterio: Cada BR tiene al menos un escenario negativo (rechazo/error).
+    severidad: CRITICO
+    familia: testabilidad
+    evaluador: mixto
+    referencia: Regla fundamental 1 BR = 2 escenarios
+
+  - id: NX-032
+    nombre: Valores límite
+    criterio: BRs con valores numéricos tienen escenarios de frontera (límite exacto, -1, +1).
+    severidad: ALTO
+    familia: testabilidad
+    evaluador: mixto
+    referencia: ISTQB v4 §4.2 (BVA); checklist-revision §5.6
+
+  - id: NX-033
+    nombre: Escenarios de seguridad
+    criterio: BRs de autenticación/permisos/datos sensibles tienen escenario de seguridad con referencia OWASP.
+    severidad: CRITICO
+    familia: testabilidad
+    evaluador: mixto
+    referencia: OWASP Top 10:2021; guia-devsecops
+
+  - id: NX-034
+    nombre: Mensajes de error especificados
+    criterio: Los mensajes de error esperados están especificados textualmente.
+    severidad: MEDIO
+    familia: testabilidad
+    evaluador: llm
+    referencia: checklist-revision §5.4
+
+  - id: NX-035
+    nombre: Datos de prueba derivables
+    criterio: Los datos de prueba son derivables de la HU (ejemplos concretos o reglas de derivación).
+    severidad: MEDIO
+    familia: testabilidad
+    evaluador: llm
+    referencia: checklist-revision §5.3
+
+  # ---------- FAMILIA NO FUNCIONAL / COMPLIANCE (evaluador: llm) ----------
+  - id: NX-040
+    nombre: NFRs declarados
+    criterio: Requisitos no funcionales (performance, volumen) declarados o N/A explícito.
+    severidad: MEDIO
+    familia: nfr
+    evaluador: llm
+    referencia: checklist-revision §2.6; ISO 25010
+
+  - id: NX-041
+    nombre: Accesibilidad
+    criterio: Si hay UI, consideración de accesibilidad (WCAG 2.2) declarada o N/A justificado.
+    severidad: MEDIO
+    familia: nfr
+    evaluador: llm
+    referencia: WCAG 2.2
+
+  - id: NX-042
+    nombre: Auditoría de datos sensibles
+    criterio: Si la HU maneja credenciales o datos sensibles, existe requisito de auditoría/logging.
+    severidad: ALTO
+    familia: nfr
+    evaluador: llm
+    referencia: OWASP A09:2021; ISO 27001
+
+  - id: NX-043
+    nombre: Cumplimiento regulatorio
+    criterio: Normativa aplicable (PCI-DSS, HIPAA, GDPR...) identificada o N/A explícito.
+    severidad: BAJO
+    familia: nfr
+    evaluador: llm
+    referencia: marco-normativo-estandares
