@@ -1,0 +1,78 @@
+NEXUS Requirements — Source-Available License / Licencia de Código Visible
+============================================================================
+
+Copyright © 2026 Elyer Gregorio Maldonado. All rights reserved.
+Todos los derechos reservados.
+
+----------------------------------------------------------------------------
+ENGLISH
+----------------------------------------------------------------------------
+
+This repository is made publicly visible for EVALUATION PURPOSES ONLY —
+specifically, so that recruiters, hiring managers, and technical evaluators
+can review the author's work, architecture, and methodology.
+
+Permission is granted, free of charge, to any person to:
+
+  1. View and read the source code, documentation, and artifacts.
+  2. Clone the repository locally for the sole purpose of evaluating
+     the author's professional work.
+
+NO OTHER RIGHTS ARE GRANTED. Without the author's prior written
+permission, you may NOT:
+
+  - Use this software, in whole or in part, in any product, service,
+    or internal tool (commercial or non-commercial).
+  - Copy, reproduce, or redistribute the source code or documentation.
+  - Modify the software or create derivative works based on it,
+    including reimplementations of its rule catalog (NX rules),
+    scoring models (RHI, VCR), prompts, or pipeline design.
+  - Remove or alter copyright, license, or attribution notices.
+
+The QASL Shift-Left Testing methodology referenced by this engine is
+published separately under CC BY-NC-ND 4.0.
+
+For licensing, collaboration, or commercial inquiries:
+elyer.g.maldonado@gmail.com
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+----------------------------------------------------------------------------
+ESPAÑOL
+----------------------------------------------------------------------------
+
+Este repositorio se hace públicamente visible ÚNICAMENTE CON FINES DE
+EVALUACIÓN — específicamente, para que reclutadores, hiring managers y
+evaluadores técnicos puedan revisar el trabajo, la arquitectura y la
+metodología del autor.
+
+Se concede permiso, sin costo, a cualquier persona para:
+
+  1. Ver y leer el código fuente, la documentación y los artefactos.
+  2. Clonar el repositorio localmente con el único fin de evaluar
+     el trabajo profesional del autor.
+
+NO SE CONCEDE NINGÚN OTRO DERECHO. Sin permiso previo y por escrito
+del autor, NO está permitido:
+
+  - Usar este software, total o parcialmente, en ningún producto,
+    servicio o herramienta interna (comercial o no comercial).
+  - Copiar, reproducir o redistribuir el código fuente o la documentación.
+  - Modificar el software o crear obras derivadas, incluyendo
+    reimplementaciones de su catálogo de reglas (reglas NX), sus
+    modelos de puntuación (RHI, VCR), sus prompts o el diseño del pipeline.
+  - Eliminar o alterar los avisos de copyright, licencia o atribución.
+
+La metodología QASL Shift-Left Testing referenciada por este motor se
+publica por separado bajo CC BY-NC-ND 4.0.
+
+Para consultas de licenciamiento, colaboración o uso comercial:
+elyer.g.maldonado@gmail.com
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+EXPRESA O IMPLÍCITA. EN NINGÚN CASO EL AUTOR SERÁ RESPONSABLE DE
+RECLAMOS, DAÑOS U OTRAS RESPONSABILIDADES DERIVADAS DEL USO DEL SOFTWARE.

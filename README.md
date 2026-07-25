@@ -204,3 +204,11 @@ Creador del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-
 *"El éxito de QA no se mide solo por los bugs que encuentra, sino por los que impide que existan."*
 
 </div>
+
+---
+
+## 📄 Licencia
+
+**© 2026 Elyer Gregorio Maldonado — Todos los derechos reservados.**
+
+Este repositorio es *source-available* con fines de **evaluación profesional** (reclutadores, hiring managers, evaluadores técnicos). No se permite su uso, copia, modificación ni redistribución sin permiso escrito del autor. Ver [LICENSE](LICENSE) para los términos completos (EN/ES). La metodología [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shiftleft-methodology/) se publica por separado bajo CC BY-NC-ND 4.0.
