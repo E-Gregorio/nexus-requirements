@@ -1,0 +1,665 @@
+{
+  "hu_id": "HU_TRANSF_01",
+  "vcr_propuesto": {
+    "valor": 3,
+    "costo": 2,
+    "riesgo": 3,
+    "probabilidad": 3,
+    "impacto": 3,
+    "justificacion": "Valor 3: funcionalidad core de banca digital con impacto directo en satisfacción cliente y volumen transaccional. Costo 2: requiere setup de cuentas con estados variados y validaciones backend/frontend. Riesgo 3 (VxR=9): errores en transferencias generan pérdidas financieras, reclamos regulatorios y daño reputacional crítico"
+  },
+  "suites": [
+    {
+      "ts_id": "HU_TRANSF_01_TS01",
+      "nombre": "Flujos Positivos - Transferencias Exitosas",
+      "tecnica_istqb": "Partición de Equivalencia y Valores Límite",
+      "framework_sugerido": "Playwright",
+      "descripcion": "Valida flujos funcionales correctos: transferencias exitosas, límites permitidos, confirmación y comprobante",
+      "categoria": "Funcional"
+    },
+    {
+      "ts_id": "HU_TRANSF_01_TS02",
+      "nombre": "Flujos Negativos - Validaciones y Rechazos",
+      "tecnica_istqb": "Análisis de Causa-Efecto y Tabla de Decisión",
+      "framework_sugerido": "Playwright + Newman (validar API rechazos)",
+      "descripcion": "Valida rechazos esperados: fondos insuficientes, montos inválidos, cuentas inactivas, límites excedidos, sesión expirada",
+      "categoria": "Funcional - Negativa"
+    },
+    {
+      "ts_id": "HU_TRANSF_01_TS03",
+      "nombre": "Seguridad - OWASP Banking",
+      "tecnica_istqb": "Análisis de Riesgos OWASP",
+      "framework_sugerido": "Playwright + ZAP (escaneo autenticado)",
+      "descripcion": "Valida controles de acceso, autenticación 2FA, auditoría, protección anti-bruteforce y gestión de sesión según OWASP A01/A07/A09",
+      "categoria": "Seguridad - OWASP"
+    }
+  ],
+  "precondiciones": [
+    {
+      "prc_id": "HU_TRANSF_01_PRC01",
+      "titulo": "Cliente con cuentas activas y saldo suficiente",
+      "descripcion": "Cliente autenticado con 2+ cuentas activas: cuenta origen con $100,000 saldo disponible, cuenta destino activa",
+      "pasos_setup": [
+        "Crear usuario cliente_prueba_01 con perfil estándar (límite diario $50,000)",
+        "Crear cuenta CA-001 tipo Ahorro estado ACTIVA saldo $100,000 sin retenciones",
+        "Crear cuenta CA-002 tipo Corriente estado ACTIVA saldo $5,000",
+        "Autenticar cliente_prueba_01 con sesión válida (token JWT activo)"
+      ],
+      "datos_requeridos": "cliente_prueba_01 (usr:client01, pwd:Test@1234), CA-001 ($100,000), CA-002 ($5,000), token_sesion válido",
+      "estado_sistema": "Sistema disponible, servicios de cuentas y transferencias activos, sesión autenticada no expirada",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_TRANSF_01_PRC02",
+      "titulo": "Cliente con cuenta inactiva para validación de rechazo",
+      "descripcion": "Cliente autenticado con cuenta origen activa y cuenta destino en estado INACTIVA",
+      "pasos_setup": [
+        "Crear usuario cliente_prueba_02 con perfil estándar",
+        "Crear cuenta CB-001 estado ACTIVA saldo $50,000",
+        "Crear cuenta CB-002 estado INACTIVA saldo $0",
+        "Autenticar cliente_prueba_02 con sesión válida"
+      ],
+      "datos_requeridos": "cliente_prueba_02 (usr:client02, pwd:Test@5678), CB-001 ($50,000 activa), CB-002 (inactiva), token_sesion válido",
+      "estado_sistema": "Sistema disponible, cuenta CB-002 marcada INACTIVA en BD",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_TRANSF_01_PRC03",
+      "titulo": "Cliente con saldo insuficiente para validación de rechazo",
+      "descripcion": "Cliente con cuenta origen saldo $500 para probar rechazo por fondos insuficientes",
+      "pasos_setup": [
+        "Crear usuario cliente_prueba_03 con perfil estándar",
+        "Crear cuenta CC-001 estado ACTIVA saldo $500 sin retenciones",
+        "Crear cuenta CC-002 estado ACTIVA saldo $1,000",
+        "Autenticar cliente_prueba_03 con sesión válida"
+      ],
+      "datos_requeridos": "cliente_prueba_03 (usr:client03, pwd:Test@9012), CC-001 ($500), CC-002 ($1,000), token_sesion válido",
+      "estado_sistema": "Sistema disponible, cuenta CC-001 con saldo verificado $500",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_TRANSF_01_PRC04",
+      "titulo": "Token de sesión expirado para validación de seguridad",
+      "descripcion": "Cliente con token JWT expirado hace 16 minutos para probar rechazo por sesión caducada",
+      "pasos_setup": [
+        "Crear usuario cliente_prueba_04 con perfil estándar",
+        "Crear cuenta CD-001 estado ACTIVA saldo $20,000",
+        "Crear cuenta CD-002 estado ACTIVA saldo $10,000",
+        "Generar token_sesion con timestamp -16 minutos (expirado)"
+      ],
+      "datos_requeridos": "cliente_prueba_04 (usr:client04, pwd:Test@3456), CD-001 ($20,000), CD-002 ($10,000), token_expirado (exp: -16min)",
+      "estado_sistema": "Sistema validando expiración de sesión según BR5 (timeout 15min)",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "HU_TRANSF_01_PRC05",
+      "titulo": "Cliente con perfil premium para límites elevados",
+      "descripcion": "Cliente perfil premium con límite diario $200,000 para validar transferencias de alto monto",
+      "pasos_setup": [
+        "Crear usuario cliente_premium_01 con perfil premium (límite $200,000)",
+        "Crear cuenta CE-001 estado ACTIVA saldo $250,000",
+        "Crear cuenta CE-002 estado ACTIVA saldo $50,000",
+        "Autenticar cliente_premium_01 con sesión válida"
+      ],
+      "datos_requeridos": "cliente_premium_01 (usr:premium01, pwd:Premium@789), CE-001 ($250,000), CE-002 ($50,000), perfil=premium, token_sesion válido",
+      "estado_sistema": "Sistema con configuración límites premium activa",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    }
+  ],
+  "test_cases": [
+    {
+      "tc_id": "HU_TRANSF_01_TC_E1",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Transferencia exitosa con monto válido y saldo suficiente",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E1",
+      "brs_cubiertas": [
+        "BR1",
+        "BR3",
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia (clase válida: monto dentro límite, saldo suficiente)",
+      "origen": "original",
+      "es_smoke": true,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "Cuenta origen: CA-001 ($100,000), Cuenta destino: CA-002, Monto: $10,000",
+      "resultado_esperado": "Transferencia ejecutada. CA-001 queda con $90,000, CA-002 con $15,000. Comprobante PDF descargable con datos correctos. Operación registrada en auditoría",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar monto $10,000, seleccionar CA-001 como origen, CA-002 como destino y confirmar",
+          "datos": "Monto=$10,000, Origen=CA-001, Destino=CA-002",
+          "resultado_esperado": "Sistema muestra pantalla confirmación con detalle: monto $10,000, comisión $0, total $10,000, cuentas seleccionadas"
+        },
+        {
+          "numero": 2,
+          "accion": "Confirmar operación en pantalla de resumen",
+          "datos": "Botón Confirmar",
+          "resultado_esperado": "Mensaje 'Transferencia exitosa'. Saldo CA-001=$90,000, CA-002=$15,000 actualizado en <5seg. Comprobante disponible"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E2",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Listado muestra solo cuentas propias activas del cliente",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E2",
+      "brs_cubiertas": [
+        "BR1"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia (validar filtro estado ACTIVA + propiedad)",
+      "origen": "original",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "Cliente cliente_prueba_01 autenticado (propietario CA-001, CA-002 activas)",
+      "resultado_esperado": "Dropdown cuentas origen muestra solo CA-001 y CA-002. No lista cuentas de otros clientes ni cuentas inactivas/bloqueadas propias",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Acceder a módulo Transferencias y abrir selector de cuenta origen",
+          "datos": "Cliente autenticado cliente_prueba_01",
+          "resultado_esperado": "Dropdown despliega exactamente 2 cuentas: CA-001 (Ahorro $100,000) y CA-002 (Corriente $5,000). Sin cuentas ajenas ni inactivas"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E3",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Pantalla de confirmación muestra detalle completo de la operación",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E3",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia (validar UI confirmación)",
+      "origen": "original",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "Monto: $5,000, Origen: CA-001, Destino: CA-002",
+      "resultado_esperado": "Pantalla confirmación muestra: Monto $5,000, Cuenta origen CA-001, Cuenta destino CA-002, Comisión $0, Total a debitar $5,000, botones Confirmar/Cancelar",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar datos transferencia y presionar Continuar",
+          "datos": "Monto=$5,000, Origen=CA-001, Destino=CA-002",
+          "resultado_esperado": "Sistema muestra resumen con todos los campos especificados correctamente antes de ejecución final"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E4",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Comprobante PDF generado y descargable tras transferencia exitosa",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E4",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia (validar generación artefacto)",
+      "origen": "original",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Baja",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "Transferencia exitosa $8,000 CA-001→CA-002",
+      "resultado_esperado": "Comprobante PDF descargable contiene: fecha/hora, monto $8,000, cuentas origen/destino, número operación único, estado 'Exitosa'",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Hacer clic en botón Descargar Comprobante tras transferencia exitosa",
+          "datos": "Botón Descargar Comprobante",
+          "resultado_esperado": "Archivo PDF se descarga. Contiene todos los datos de la operación correctamente formateados y legibles"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E5",
+      "ts_id": "HU_TRANSF_01_TS02",
+      "titulo": "Rechazo por fondos insuficientes en cuenta origen",
+      "tipo_prueba": "Funcional - Negativa",
+      "escenario_id": "E5",
+      "brs_cubiertas": [
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC03"
+      ],
+      "tecnica": "Partición de Equivalencia (clase inválida: saldo < monto)",
+      "origen": "original",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "Cuenta origen: CC-001 (saldo $500), Monto: $1,000",
+      "resultado_esperado": "Mensaje exacto 'Fondos insuficientes'. Transferencia NO ejecutada. Saldo CC-001 permanece $500",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar monto $1,000 con cuenta origen CC-001 (saldo $500) y confirmar",
+          "datos": "Monto=$1,000, Origen=CC-001 ($500)",
+          "resultado_esperado": "Sistema muestra mensaje 'Fondos insuficientes' y no debita cuenta. Saldo CC-001=$500 sin cambios"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E6",
+      "ts_id": "HU_TRANSF_01_TS02",
+      "titulo": "Rechazo de transferencia con cuenta destino inactiva",
+      "tipo_prueba": "Funcional - Negativa",
+      "escenario_id": "E6",
+      "brs_cubiertas": [
+        "BR1"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC02"
+      ],
+      "tecnica": "Partición de Equivalencia (clase inválida: estado cuenta INACTIVA)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "Origen: CB-001 (activa, $50,000), Destino: CB-002 (INACTIVA)",
+      "resultado_esperado": "Mensaje exacto 'La cuenta destino no está activa'. Transferencia NO ejecutada. CB-001 sin cambios",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Intentar transferir $5,000 desde CB-001 hacia CB-002 inactiva",
+          "datos": "Monto=$5,000, Origen=CB-001, Destino=CB-002 (INACTIVA)",
+          "resultado_esperado": "Sistema valida estado cuenta destino y muestra 'La cuenta destino no está activa'. No permite continuar. CB-001=$50,000 sin cambios"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E7",
+      "ts_id": "HU_TRANSF_01_TS03",
+      "titulo": "Intento de transferencia a cuenta ajena rechazado (A01:2021 BAC)",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E7",
+      "brs_cubiertas": [
+        "BR1",
+        "NUEVA_BR7"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP (A01:2021 Broken Access Control)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "Cliente cliente_prueba_01 intenta transferir a cuenta XX-999 (propiedad de otro_cliente)",
+      "resultado_esperado": "Mensaje 'Cuenta destino inválida'. Operación rechazada. Log auditoría registra intento con timestamp, IP, usuario, cuenta objetivo",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Manipular request o UI para ingresar número cuenta ajena XX-999 como destino",
+          "datos": "Origen=CA-001, Destino=XX-999 (no pertenece a cliente_prueba_01)",
+          "resultado_esperado": "Sistema valida propiedad, muestra 'Cuenta destino inválida' y rechaza. Auditoría registra: user=client01, destino=XX-999, resultado=RECHAZADO_ACCESO, IP"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E8",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Transferencia dentro del límite máximo permitido perfil estándar",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E8",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Valores Límite (límite-1: $49,000 < $50,000)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "Perfil estándar (límite $50,000), Monto: $49,000",
+      "resultado_esperado": "Transferencia exitosa. CA-001 debitada $49,000, CA-002 acreditada $49,000. Comprobante generado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Transferir $49,000 desde CA-001 a CA-002 con perfil estándar",
+          "datos": "Monto=$49,000, Origen=CA-001 ($100,000), Destino=CA-002, Perfil=estándar (límite $50,000)",
+          "resultado_esperado": "Sistema ejecuta transferencia. CA-001=$51,000, CA-002=$54,000. Comprobante disponible"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E9",
+      "ts_id": "HU_TRANSF_01_TS02",
+      "titulo": "Rechazo por exceder límite máximo perfil estándar",
+      "tipo_prueba": "Funcional - Negativa",
+      "escenario_id": "E9",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Valores Límite (límite+1: $50,001 > $50,000)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "Perfil estándar (límite $50,000), Monto: $50,001",
+      "resultado_esperado": "Mensaje exacto 'El monto excede el límite diario permitido de $50,000'. Transferencia NO ejecutada",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Intentar transferir $50,001 desde CA-001 a CA-002 con perfil estándar",
+          "datos": "Monto=$50,001, Origen=CA-001, Perfil=estándar (límite $50,000)",
+          "resultado_esperado": "Sistema valida límite y muestra 'El monto excede el límite diario permitido de $50,000'. No debita CA-001"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E10",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Transferencia con monto exacto al límite máximo perfil estándar",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E10",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Valores Límite (límite exacto: $50,000 = $50,000)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "Perfil estándar (límite $50,000), Monto: $50,000",
+      "resultado_esperado": "Transferencia exitosa. CA-001 debitada $50,000, CA-002 acreditada $50,000. Comprobante generado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Transferir exactamente $50,000 desde CA-001 a CA-002 con perfil estándar",
+          "datos": "Monto=$50,000, Origen=CA-001 ($100,000), Destino=CA-002, Perfil=estándar (límite $50,000)",
+          "resultado_esperado": "Sistema ejecuta transferencia en el límite exacto. CA-001=$50,000, CA-002=$55,000. Comprobante disponible"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E11",
+      "ts_id": "HU_TRANSF_01_TS02",
+      "titulo": "Rechazo de monto cero o negativo",
+      "tipo_prueba": "Funcional - Negativa",
+      "escenario_id": "E11",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Partición de Equivalencia (clase inválida: monto ≤ 0)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "Monto: $0 (luego monto: $-100)",
+      "resultado_esperado": "Mensaje exacto 'El monto debe ser mayor a cero'. Botón Continuar deshabilitado o validación en submit",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar monto $0 en el campo monto y presionar Continuar",
+          "datos": "Monto=$0",
+          "resultado_esperado": "Sistema muestra 'El monto debe ser mayor a cero' y no permite continuar"
+        },
+        {
+          "numero": 2,
+          "accion": "Ingresar monto negativo $-100 y presionar Continuar",
+          "datos": "Monto=$-100",
+          "resultado_esperado": "Sistema muestra 'El monto debe ser mayor a cero' y no permite continuar"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E12",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Verificación tiempo de reflejo de transferencia menor a 5 segundos",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E12",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Valores Límite (SLA tiempo: ≤5 seg)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "18 min",
+      "datos_entrada": "Transferencia $3,000 CA-001→CA-002",
+      "resultado_esperado": "Saldos actualizados en ambas cuentas en ≤5 seg tras confirmación. CA-001 debitada, CA-002 acreditada dentro del SLA",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Confirmar transferencia y medir tiempo hasta que API retorna saldos actualizados",
+          "datos": "Monto=$3,000, Origen=CA-001, Destino=CA-002",
+          "resultado_esperado": "Respuesta API con saldos actualizados (CA-001=$97,000, CA-002=$8,000) recibida en ≤5 seg. Timer verificado"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E13",
+      "ts_id": "HU_TRANSF_01_TS02",
+      "titulo": "Rollback ante falla en acreditación de cuenta destino",
+      "tipo_prueba": "Funcional - Negativa",
+      "escenario_id": "E13",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Análisis Causa-Efecto (falla parcial → rollback completo)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "Transferencia $7,000. Simular fallo en servicio acreditación destino (timeout/error 500)",
+      "resultado_esperado": "Sistema revierte débito de CA-001. Saldo CA-001 vuelve a $100,000. Mensaje 'Error al procesar transferencia, intente nuevamente'",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Inyectar fallo en servicio acreditación (mock error 500) tras débito exitoso de CA-001",
+          "datos": "Monto=$7,000, Origen=CA-001, Destino=CA-002, Forzar_error_acreditacion=true",
+          "resultado_esperado": "Sistema detecta fallo, ejecuta rollback. CA-001 permanece $100,000. Mensaje error mostrado. Auditoría registra ROLLBACK"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E14",
+      "ts_id": "HU_TRANSF_01_TS01",
+      "titulo": "Transferencia con saldo exacto disponible sin comisión",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E14",
+      "brs_cubiertas": [
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC03"
+      ],
+      "tecnica": "Valores Límite (saldo exacto: saldo = monto, comisión=0)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "Cuenta CC-001 saldo $500, Monto: $500, Comisión: $0",
+      "resultado_esperado": "Transferencia exitosa. CC-001 queda con saldo $0. CC-002 acreditada $500. Comprobante generado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Transferir exactamente $500 desde CC-001 (saldo $500) a CC-002",
+          "datos": "Monto=$500, Origen=CC-001 (saldo $500), Destino=CC-002, Comisión=$0",
+          "resultado_esperado": "Sistema ejecuta transferencia. CC-001=$0, CC-002=$1,500. Comprobante disponible"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E15",
+      "ts_id": "HU_TRANSF_01_TS03",
+      "titulo": "Rechazo por sesión expirada tras timeout de inactividad (A07:2021)",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E15",
+      "brs_cubiertas": [
+        "NUEVA_BR5"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC04"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP (A07:2021 Identification Failures - gestión sesión)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "Cliente con token sesión expirado (-16min respecto timeout 15min)",
+      "resultado_esperado": "Mensaje exacto 'Su sesión ha expirado por seguridad'. Redirige a login. Transferencia NO ejecutada",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar datos transferencia con token expirado hace 16min y presionar Confirmar",
+          "datos": "Token_sesion expirado (-16min), Monto=$5,000, Origen=CD-001, Destino=CD-002",
+          "resultado_esperado": "Sistema valida token, detecta expiración, muestra 'Su sesión ha expirado por seguridad', redirige a /login sin ejecutar. CD-001=$20,000 sin cambios"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E16",
+      "ts_id": "HU_TRANSF_01_TS03",
+      "titulo": "Confirmación con segundo factor autenticación OTP (A07:2021)",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E16",
+      "brs_cubiertas": [
+        "NUEVA_BR6"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP (A07:2021 - MFA para operaciones sensibles)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "22 min",
+      "datos_entrada": "Transferencia $12,000. OTP válido generado por sistema (ej. 123456, expira 3min)",
+      "resultado_esperado": "Sistema solicita OTP. Ingreso correcto dentro de 3min ejecuta transferencia. Comprobante generado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Confirmar transferencia, sistema envía OTP por SMS y muestra pantalla ingreso código",
+          "datos": "Monto=$12,000, Origen=CA-001, Destino=CA-002",
+          "resultado_esperado": "Pantalla solicita 'Ingrese código OTP enviado a su celular XXX-1234'. Timer 3min visible"
+        },
+        {
+          "numero": 2,
+          "accion": "Ingresar OTP correcto dentro de ventana 3min y enviar",
+          "datos": "OTP=123456 (válido, no expirado)",
+          "resultado_esperado": "Sistema valida OTP, ejecuta transferencia. CA-001=$88,000, CA-002=$17,000. Comprobante disponible"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E17",
+      "ts_id": "HU_TRANSF_01_TS03",
+      "titulo": "Registro de auditoría completo de transferencia (A09:2021)",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E17",
+      "brs_cubiertas": [
+        "NUEVA_BR7"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP (A09:2021 Security Logging Failures)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Media",
+      "tiempo_estimado": "18 min",
+      "datos_entrada": "Transferencia exitosa $6,000 CA-001→CA-002",
+      "resultado_esperado": "Log auditoría contiene: timestamp ISO, user_id=client01, origen=CA-001, destino=CA-002, monto=$6,000, resultado=EXITOSA, IP=192.168.1.100, geoloc",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar transferencia exitosa y consultar tabla audit_log en BD o API /auditoria",
+          "datos": "Monto=$6,000, Origen=CA-001, Destino=CA-002, IP=192.168.1.100",
+          "resultado_esperado": "Registro en audit_log con todos los campos requeridos: timestamp, user_id, cuentas, monto, resultado=EXITOSA, IP, geo. Retención ≥7 años configurada"
+        }
+      ]
+    },
+    {
+      "tc_id": "HU_TRANSF_01_TC_E18",
+      "ts_id": "HU_TRANSF_01_TS03",
+      "titulo": "Bloqueo temporal tras 3 intentos fallidos consecutivos (A07:2021)",
+      "tipo_prueba": "Seguridad",
+      "escenario_id": "E18",
+      "brs_cubiertas": [
+        "NUEVA_BR8"
+      ],
+      "prcs_asociadas": [
+        "HU_TRANSF_01_PRC03"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP (A07:2021 - protección anti-bruteforce)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "3 intentos fallidos por fondos insuficientes en ventana 5min, luego 4to intento",
+      "resultado_esperado": "4to intento bloqueado. Mensaje 'Funcionalidad bloqueada temporalmente por múltiples intentos fallidos. Intente en 30 minutos'. Email enviado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Realizar 3 intentos fallidos consecutivos de transferencia (fondos insuficientes) en <5min",
+          "datos": "Intentos 1-3: Monto=$1,000, Origen=CC-001 ($500), timestamp intervalo <5min",
+          "resultado_esperado": "Sistema registra 3 fallos consecutivos del mismo user en ventana temporal"
+        },
+        {
+          "numero": 2,
+          "accion": "Intentar 4ta transferencia válida con saldo suficiente",
+          "datos": "Intento 4: Monto=$100, Origen=CC-001 (ajustado $600 saldo)",
+          "resultado_esperado": "Sistema bloquea funcionalidad, muestra 'Funcionalidad bloqueada temporalmente por múltiples intentos fallidos. Intente en 30 minutos'. Email enviado a client03@mail.com. Bloqueo expira en 30min"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "id": "HU_TRANSF_01",
+  "nombre": "Transferencia entre cuentas propias",
+  "descripcion": {
+    "como": "cliente del banco con cuentas activas",
+    "quiero": "transferir dinero entre mis propias cuentas",
+    "para": "administrar mis fondos sin ir a la sucursal"
+  },
+  "epica": {
+    "id": "EP-002",
+    "nombre": "Gestión de Fondos"
+  },
+  "actor_principal": "Cliente bancario autenticado",
+  "actores_secundarios": [],
+  "precondiciones": [
+    "El cliente debe estar autenticado en el sistema",
+    "El cliente debe tener al menos dos cuentas propias activas"
+  ],
+  "postcondiciones": [
+    "La cuenta origen queda debitada con el monto transferido",
+    "La cuenta destino queda acreditada con el monto transferido",
+    "El comprobante de la operación queda disponible para descarga"
+  ],
+  "reglas_negocio": [
+    {
+      "id": "BR1",
+      "descripcion": "El cliente solo puede transferir entre cuentas propias que estén activas",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "El monto máximo por transferencia debe ser razonable según el perfil del cliente",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "La transferencia debe reflejarse rápidamente en ambas cuentas",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR4",
+      "descripcion": "Si la cuenta origen no tiene fondos suficientes, la transferencia se rechaza",
+      "origen": "explicita"
+    }
+  ],
+  "escenarios": [
+    {
+      "id": "E1",
+      "titulo": "Transferencia exitosa",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el cliente tiene dos cuentas activas y saldo suficiente en la cuenta origen"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "ingresa el monto, selecciona las cuentas y confirma la operación"
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema debita la cuenta origen, acredita la cuenta destino y muestra el comprobante"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "titulo": "Selección de cuentas",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el cliente accede al módulo de transferencias"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "abre el formulario"
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "ve listadas únicamente sus cuentas propias activas"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "titulo": "Pantalla de confirmación",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el cliente ingresó los datos de la transferencia"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "presiona Continuar"
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "ve una pantalla de confirmación con monto, cuentas seleccionadas y comisión aplicable"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "titulo": "Comprobante descargable",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que la transferencia fue exitosa"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "finaliza la operación"
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "puede descargar el comprobante en formato PDF"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "titulo": "Fondos insuficientes",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el saldo de la cuenta origen es menor al monto ingresado"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "confirma la operación"
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema muestra el mensaje \"Fondos insuficientes\" y no ejecuta la transferencia"
+        }
+      ]
+    }
+  ],
+  "dentro_alcance": [
+    "Transferencias inmediatas entre cuentas propias en la misma moneda",
+    "Visualización y descarga de comprobante",
+    "Validación de fondos antes de ejecutar"
+  ],
+  "fuera_alcance": [],
+  "dependencias": [],
+  "estimaciones": "NO_ESPECIFICADO",
+  "prioridad": "Alta",
+  "estado": "Refinada",
+  "notas": "Mockup disponible: Figma — pantalla Transferencias v3 (enlace interno del proyecto)",
+  "_meta": {
+    "fuente": "HU_TRANSF_01_original.md",
+    "version": 1,
+    "campos_no_especificados": [
+      "estimaciones",
+      "actores_secundarios",
+      "dependencias"
+    ],
+    "supuestos_normalizacion": [
+      "Las precondiciones se infirieron del contexto de la descripción y reglas de negocio (autenticación y cuentas activas necesarias)",
+      "Las postcondiciones se extrajeron del escenario E1 y E4 sobre el resultado esperado de la transferencia exitosa",
+      "fuera_alcance está vacío porque el documento no especifica exclusiones explícitas, solo define qué está incluido"
+    ]
+  }
+}

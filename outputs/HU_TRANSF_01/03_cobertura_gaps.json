@@ -1,0 +1,422 @@
+{
+  "hu_id": "HU_TRANSF_01",
+  "coberturas": [
+    {
+      "br_id": "BR1",
+      "br_descripcion": "El cliente solo puede transferir entre cuentas propias que estén activas",
+      "escenarios_cubriendo": [
+        {
+          "escenario_id": "E2",
+          "tipo_cobertura": "POSITIVO",
+          "justificacion": "Verifica que el sistema lista únicamente las cuentas propias activas disponibles para transferencia"
+        }
+      ],
+      "cobertura_porcentaje": 50,
+      "cobertura_positiva": true,
+      "cobertura_negativa": false
+    },
+    {
+      "br_id": "BR2",
+      "br_descripcion": "El monto máximo por transferencia debe ser razonable según el perfil del cliente",
+      "escenarios_cubriendo": [],
+      "cobertura_porcentaje": 0,
+      "cobertura_positiva": false,
+      "cobertura_negativa": false
+    },
+    {
+      "br_id": "BR3",
+      "br_descripcion": "La transferencia debe reflejarse rápidamente en ambas cuentas",
+      "escenarios_cubriendo": [
+        {
+          "escenario_id": "E1",
+          "tipo_cobertura": "POSITIVO",
+          "justificacion": "Verifica que el sistema debita la cuenta origen y acredita la cuenta destino tras confirmar la operación"
+        }
+      ],
+      "cobertura_porcentaje": 50,
+      "cobertura_positiva": true,
+      "cobertura_negativa": false
+    },
+    {
+      "br_id": "BR4",
+      "br_descripcion": "Si la cuenta origen no tiene fondos suficientes, la transferencia se rechaza",
+      "escenarios_cubriendo": [
+        {
+          "escenario_id": "E5",
+          "tipo_cobertura": "NEGATIVO",
+          "justificacion": "Verifica el rechazo de la operación cuando el saldo es insuficiente"
+        },
+        {
+          "escenario_id": "E1",
+          "tipo_cobertura": "POSITIVO",
+          "justificacion": "Valida que con saldo suficiente la transferencia se ejecuta correctamente"
+        }
+      ],
+      "cobertura_porcentaje": 100,
+      "cobertura_positiva": true,
+      "cobertura_negativa": true
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "br_id": "BR1",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "Falta validar el comportamiento cuando el cliente intenta transferir desde o hacia una cuenta inactiva o bloqueada",
+      "escenario_sugerido": {
+        "titulo": "E6 - Rechazo de transferencia con cuenta inactiva",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente tiene una cuenta origen activa y una cuenta destino inactiva"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta realizar una transferencia hacia la cuenta inactiva"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'La cuenta destino no está activa' y no permite continuar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-002",
+      "br_id": "BR1",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta validar que el cliente solo pueda ver y seleccionar SUS propias cuentas, no las de otros clientes (OWASP A01:2021 Broken Access Control). Sin escenario que verifique intento de acceso a cuenta ajena",
+      "escenario_sugerido": {
+        "titulo": "E7 - Intento de transferencia a cuenta de otro cliente",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente está autenticado y conoce el número de cuenta de otro cliente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta ingresar manualmente ese número de cuenta como destino"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra 'Cuenta destino inválida' y registra el intento en la auditoría de seguridad"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-003",
+      "br_id": "BR2",
+      "tipo_gap": "falta_positivo",
+      "severidad": "ALTO",
+      "descripcion": "No existe escenario que valide la transferencia exitosa con un monto dentro del límite permitido según el perfil del cliente",
+      "escenario_sugerido": {
+        "titulo": "E8 - Transferencia dentro del límite máximo permitido",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente tiene perfil estándar con límite diario de transferencia de $50,000 [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa un monto de $49,000 y confirma la operación"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema ejecuta la transferencia exitosamente y muestra el comprobante"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-004",
+      "br_id": "BR2",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "Falta validar que el sistema rechace transferencias que excedan el monto máximo permitido según el perfil del cliente",
+      "escenario_sugerido": {
+        "titulo": "E9 - Rechazo por exceder límite máximo de transferencia",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente tiene perfil estándar con límite diario de transferencia de $50,000 [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa un monto de $50,001 y confirma la operación"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra 'El monto excede el límite diario permitido de $50,000' y no ejecuta la transferencia"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-005",
+      "br_id": "BR2",
+      "tipo_gap": "falta_limite",
+      "severidad": "ALTO",
+      "descripcion": "Falta escenario de frontera que valide exactamente el monto máximo permitido",
+      "escenario_sugerido": {
+        "titulo": "E10 - Transferencia con monto exacto al límite máximo",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente tiene perfil estándar con límite diario de transferencia de $50,000 [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa exactamente $50,000 y confirma la operación"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema ejecuta la transferencia exitosamente y muestra el comprobante"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-006",
+      "br_id": "BR2",
+      "tipo_gap": "falta_negativo",
+      "severidad": "MEDIO",
+      "descripcion": "Falta validar el rechazo de montos inválidos (cero, negativos, formato no numérico)",
+      "escenario_sugerido": {
+        "titulo": "E11 - Rechazo de monto cero o negativo",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente accede al formulario de transferencia"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa un monto de $0 o valor negativo y presiona Continuar"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra 'El monto debe ser mayor a cero' y no permite continuar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-007",
+      "br_id": "BR3",
+      "tipo_gap": "falta_limite",
+      "severidad": "ALTO",
+      "descripcion": "La BR indica 'rápidamente' pero no está cuantificado. Falta escenario que verifique el tiempo máximo de reflejo (SLA de procesamiento)",
+      "escenario_sugerido": {
+        "titulo": "E12 - Verificación de tiempo de reflejo de transferencia",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente confirma una transferencia exitosa"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "consulta los saldos de ambas cuentas"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "los movimientos se reflejan en ambas cuentas en menos de 5 segundos [VALOR PROPUESTO — confirmar con negocio]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-008",
+      "br_id": "BR3",
+      "tipo_gap": "falta_negativo",
+      "severidad": "MEDIO",
+      "descripcion": "Falta validar el comportamiento si la acreditación falla (timeout, error de sistema) para garantizar consistencia transaccional",
+      "escenario_sugerido": {
+        "titulo": "E13 - Rollback ante falla en acreditación",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el sistema debita la cuenta origen exitosamente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ocurre un error técnico al intentar acreditar la cuenta destino"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema revierte el débito de la cuenta origen y muestra 'Error al procesar transferencia, intente nuevamente'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-009",
+      "br_id": "BR4",
+      "tipo_gap": "falta_limite",
+      "severidad": "ALTO",
+      "descripcion": "Falta escenario de frontera con saldo exacto igual al monto (incluyendo comisiones si aplican)",
+      "escenario_sugerido": {
+        "titulo": "E14 - Transferencia con saldo exacto disponible",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que la cuenta origen tiene saldo de $1,000 y la comisión por transferencia es $0 [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa exactamente $1,000 y confirma la operación"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema ejecuta la transferencia exitosamente dejando la cuenta origen en $0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-010",
+      "br_id": "NUEVA_BR5",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta validar que la sesión del usuario esté activa y no haya expirado al momento de confirmar la transferencia (OWASP A07:2021 Identification and Authentication Failures)",
+      "escenario_sugerido": {
+        "titulo": "E15 - Rechazo por sesión expirada",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente ingresó los datos de transferencia pero su sesión expiró después de 15 minutos de inactividad [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "presiona Confirmar"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra 'Su sesión ha expirado por seguridad' y redirige al login sin ejecutar la transferencia"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-011",
+      "br_id": "NUEVA_BR6",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta validar segundo factor de autenticación para transferencias (OWASP A07:2021). Transferencias financieras requieren confirmación adicional (OTP, token, biometría)",
+      "escenario_sugerido": {
+        "titulo": "E16 - Confirmación con segundo factor de autenticación",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente ingresó los datos de transferencia y presionó Confirmar"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el sistema solicita código OTP enviado por SMS"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el cliente debe ingresar el código correcto dentro de 3 minutos [VALOR PROPUESTO — confirmar con negocio] para ejecutar la transferencia"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-012",
+      "br_id": "NUEVA_BR7",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "Falta auditoría de todas las operaciones de transferencia (OWASP A09:2021 Security Logging and Monitoring Failures). Cada intento exitoso o fallido debe registrarse",
+      "escenario_sugerido": {
+        "titulo": "E17 - Registro de auditoría de transferencia",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente realiza cualquier intento de transferencia"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "la operación finaliza (exitosa o rechazada)"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en la auditoría: timestamp, usuario, cuentas involucradas, monto, resultado y dirección IP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-013",
+      "br_id": "NUEVA_BR8",
+      "tipo_gap": "falta_limite",
+      "severidad": "MEDIO",
+      "descripcion": "Falta validar límite de intentos fallidos consecutivos para prevenir ataques de fuerza bruta (OWASP A07:2021)",
+      "escenario_sugerido": {
+        "titulo": "E18 - Bloqueo temporal tras intentos fallidos",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el cliente ha tenido 3 intentos fallidos de transferencia por fondos insuficientes en los últimos 5 minutos [VALOR PROPUESTO — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta realizar una cuarta transferencia"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema bloquea temporalmente la funcionalidad por 30 minutos y notifica al cliente por email"
+          }
+        ]
+      }
+    }
+  ],
+  "resumen": {
+    "total_brs": 4,
+    "brs_sin_cobertura": 1,
+    "brs_cobertura_parcial": 2,
+    "brs_cobertura_completa": 1,
+    "cobertura_inicial_promedio": 50,
+    "cobertura_proyectada": 100,
+    "total_gaps": 13,
+    "gaps_criticos": 5,
+    "gaps_altos": 6,
+    "gaps_medios": 2,
+    "gaps_bajos": 0,
+    "observaciones": "La HU presenta gaps críticos de seguridad: falta control de acceso a cuentas ajenas, autenticación de segundo factor, validación de sesión activa y auditoría. Las BRs tienen valores cualitativos ('razonable', 'rápidamente') que requieren cuantificación. Detectadas 4 BRs nuevas implícitas obligatorias por requisitos de seguridad bancaria (OWASP). La cobertura funcional es básica (50%) y la de seguridad inexistente."
+  },
+  "brs_mejoradas": [
+    {
+      "id": "BR1",
+      "descripcion": "El cliente solo puede transferir entre cuentas propias que estén en estado ACTIVA (excluyendo estados: BLOQUEADA, INACTIVA, CERRADA). El sistema debe validar la propiedad de ambas cuentas contra el ID del cliente autenticado antes de permitir la operación"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "El monto máximo por transferencia es de $50,000 [PROPUESTO] para perfil estándar, $200,000 [PROPUESTO] para perfil premium, y $1,000,000 [PROPUESTO] para perfil corporativo. El monto mínimo es $1 [PROPUESTO]. Acumulado diario no debe exceder 3x el límite individual [PROPUESTO]. Confirmar valores con negocio"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "La transferencia debe reflejarse en ambas cuentas (débito en origen y crédito en destino) en un tiempo máximo de 5 segundos [PROPUESTO]. Si el proceso excede este SLA o falla parcialmente, el sistema debe ejecutar rollback automático y notificar al usuario. Confirmar SLA con negocio"
+    },
+    {
+      "id": "BR4",
+      "descripcion": "Si el saldo disponible de la cuenta origen (saldo actual menos saldo retenido) es menor al monto solicitado más comisiones aplicables, la transferencia se rechaza con mensaje 'Fondos insuficientes' sin ejecutar débito alguno"
+    },
+    {
+      "id": "NUEVA_BR5",
+      "descripcion": "[PROPUESTO] La sesión del usuario debe estar activa al momento de confirmar la transferencia. Timeout de sesión: 15 minutos de inactividad [PROPUESTO]. Si la sesión expiró, se rechaza la operación y se redirige a login. Confirmar timeout con políticas de seguridad"
+    },
+    {
+      "id": "NUEVA_BR6",
+      "descripcion": "[PROPUESTO] Toda transferencia requiere autenticación de segundo factor (OTP vía SMS o app, biometría o token). El código OTP expira en 3 minutos [PROPUESTO] y permite máximo 3 intentos de validación. Basado en OWASP A07:2021. Confirmar método 2FA con negocio"
+    },
+    {
+      "id": "NUEVA_BR7",
+      "descripcion": "[PROPUESTO] El sistema debe registrar en log de auditoría cada operación de transferencia (exitosa o fallida) incluyendo: timestamp, ID de usuario, cuentas origen/destino, monto, resultado, IP de origen y geolocalización. Retención mínima 7 años según regulación bancaria. Basado en OWASP A09:2021"
+    },
+    {
+      "id": "NUEVA_BR8",
+      "descripcion": "[PROPUESTO] Después de 3 intentos fallidos de transferencia (cualquier causa) en ventana de 5 minutos [PROPUESTO], el sistema bloquea temporalmente la funcionalidad por 30 minutos [PROPUESTO] y envía notificación al email registrado del cliente. Basado en OWASP A07:2021 para prevenir ataques automatizados. Confirmar valores con seguridad"
+    }
+  ]
+}

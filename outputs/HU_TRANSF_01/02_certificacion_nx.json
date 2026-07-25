@@ -1,0 +1,197 @@
+{
+  "hu_id": "HU_TRANSF_01",
+  "version_hu": 1,
+  "version_catalogo": "0.1.0",
+  "evaluaciones": [
+    {
+      "regla": "NX-001",
+      "veredicto": "CUMPLE",
+      "evidencia": "ID 'HU_TRANSF_01' con formato válido"
+    },
+    {
+      "regla": "NX-002",
+      "veredicto": "CUMPLE",
+      "evidencia": "Como/Quiero/Para completos"
+    },
+    {
+      "regla": "NX-003",
+      "veredicto": "CUMPLE",
+      "evidencia": "Épica: {'id': 'EP-002', 'nombre': 'Gestión de Fondos'}"
+    },
+    {
+      "regla": "NX-004",
+      "veredicto": "CUMPLE",
+      "evidencia": "Prioridad: Alta"
+    },
+    {
+      "regla": "NX-005",
+      "veredicto": "CUMPLE",
+      "evidencia": "4 BRs numeradas explícitamente"
+    },
+    {
+      "regla": "NX-006",
+      "veredicto": "CUMPLE",
+      "evidencia": "5 escenarios Gherkin completos"
+    },
+    {
+      "regla": "NX-007",
+      "veredicto": "CUMPLE",
+      "evidencia": "Precondiciones declaradas"
+    },
+    {
+      "regla": "NX-008",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin dependencias declaradas (ni 'Ninguna' explícito)"
+    },
+    {
+      "regla": "NX-009",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin estimaciones VCR"
+    },
+    {
+      "regla": "NX-010",
+      "veredicto": "CUMPLE",
+      "evidencia": "Alcance declarado"
+    },
+    {
+      "regla": "NX-011",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin sección Fuera del Alcance"
+    },
+    {
+      "regla": "NX-012",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Usuarios/Roles no identificados"
+    },
+    {
+      "regla": "NX-013",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin referencias documentales"
+    },
+    {
+      "regla": "NX-020",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'El monto máximo por transferencia debe ser razonable según el perfil del cliente' (término 'razonable' no cuantificado). BR3: 'La transferencia debe reflejarse rápidamente en ambas cuentas' (término 'rápidamente' no cuantificado).",
+      "recomendacion": "BR2: Especificar montos máximos concretos por perfil (ej. 'Perfil básico: $10,000 diarios; Perfil premium: $50,000 diarios'). BR3: Cuantificar tiempo de reflejo (ej. 'La transferencia debe reflejarse en ambas cuentas en tiempo real, máximo 5 segundos desde confirmación')."
+    },
+    {
+      "regla": "NX-021",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'El monto máximo por transferencia debe ser razonable según el perfil del cliente' — no es testeable porque 'razonable' es subjetivo y no permite diseñar una prueba que la refute objetivamente. BR3: 'La transferencia debe reflejarse rápidamente en ambas cuentas' — 'rápidamente' es no verificable, imposible diseñar prueba con criterio pass/fail objetivo.",
+      "recomendacion": "Reformular BR2 con valores concretos por perfil. Reformular BR3 con tiempo máximo medible (ej. 'La transferencia debe completarse en ≤5 segundos')."
+    },
+    {
+      "regla": "NX-022",
+      "veredicto": "CUMPLE",
+      "evidencia": "No se detectan contradicciones entre BRs (BR1, BR2, BR3, BR4), escenarios (E1-E5), alcance ('Transferencias inmediatas entre cuentas propias en la misma moneda') y precondiciones ('al menos dos cuentas propias activas', 'estar autenticado'). Todos los elementos son coherentes entre sí."
+    },
+    {
+      "regla": "NX-023",
+      "veredicto": "CUMPLE",
+      "evidencia": "La HU cubre una única funcionalidad: 'Transferencia entre cuentas propias'. Descripción: 'transferir dinero entre mis propias cuentas'. Alcance: 'Transferencias inmediatas entre cuentas propias en la misma moneda'. No mezcla funcionalidades diferentes."
+    },
+    {
+      "regla": "NX-024",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2: 'monto máximo' no especifica valor numérico con unidad. BR3: 'rápidamente' no especifica tiempo con número y unidad. No hay tiempos de expiración, límites de reintentos o umbrales cuantificados donde se requieren.",
+      "recomendacion": "BR2: Especificar límites con número y unidad (ej. '$10,000 USD diarios para perfil básico'). BR3: Especificar tiempo con unidad (ej. 'máximo 5 segundos'). Agregar BR sobre tiempo de sesión si aplica."
+    },
+    {
+      "regla": "NX-025",
+      "veredicto": "CUMPLE",
+      "evidencia": "El vocabulario es consistente: 'cuenta origen'/'cuenta destino' se usa consistentemente en BR4, postcondiciones y E1. 'Transferencia' se usa consistentemente. 'Cliente' se usa consistentemente. 'Comprobante' se usa consistentemente en postcondición y E4. No se detectan sinónimos intercambiados para el mismo concepto."
+    },
+    {
+      "regla": "NX-030",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2 (monto máximo razonable) no tiene escenario positivo que la valide semánticamente — ningún escenario prueba transferencia exitosa con monto dentro del límite del perfil. BR3 (reflejo rápido) no tiene escenario que valide tiempo de reflejo. BR1 validada por E2. BR4 validada por E5.",
+      "recomendacion": "Agregar escenario positivo: 'Transferencia con monto dentro del límite del perfil' que valide BR2. Agregar escenario que verifique tiempo de actualización de saldos para BR3 (ej. 'Verificación de reflejo inmediato en ambas cuentas')."
+    },
+    {
+      "regla": "NX-031",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR1 (solo cuentas activas) no tiene escenario negativo que pruebe rechazo con cuenta inactiva. BR2 (monto máximo) no tiene escenario que pruebe rechazo por exceder límite. BR3 (reflejo rápido) no aplica a escenario negativo. BR4 tiene E5 (fondos insuficientes) como negativo.",
+      "recomendacion": "Agregar escenario negativo: 'Intento de transferencia desde/hacia cuenta inactiva' para BR1. Agregar escenario negativo: 'Monto excede el límite permitido para el perfil del cliente' para BR2."
+    },
+    {
+      "regla": "NX-032",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2 menciona 'monto máximo' pero no hay escenarios de valores límite (monto = límite exacto, límite - 0.01, límite + 0.01). BR4 menciona 'fondos suficientes' pero E5 no prueba frontera (saldo = monto exacto, saldo = monto - 0.01).",
+      "recomendacion": "Agregar escenarios de frontera para BR2: 'Monto igual al límite permitido', 'Monto 1 centavo por debajo del límite', 'Monto 1 centavo por encima del límite'. Agregar para BR4: 'Saldo exactamente igual al monto', 'Saldo 1 centavo menor que el monto'."
+    },
+    {
+      "regla": "NX-033",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Precondición: 'El cliente debe estar autenticado en el sistema' — la HU requiere autenticación. No existe ningún escenario que valide seguridad de autenticación, sesión expirada, suplantación o manipulación de parámetros (OWASP A01:2021 Broken Access Control, A07:2021 Identification and Authentication Failures).",
+      "recomendacion": "Agregar escenarios de seguridad: 'Sesión expirada durante transferencia' (OWASP A07), 'Intento de transferencia sin autenticación' (OWASP A07), 'Manipulación de parámetro cuenta destino hacia cuenta ajena' (OWASP A01). Referenciar OWASP Top 10:2021."
+    },
+    {
+      "regla": "NX-034",
+      "veredicto": "INCUMPLE",
+      "evidencia": "E5 especifica mensaje: 'Fondos insuficientes'. Sin embargo, no hay mensajes especificados para otros casos de error potenciales: cuenta inactiva (BR1), exceso de monto (BR2), error de sistema, sesión expirada.",
+      "recomendacion": "Especificar mensajes de error para: intento con cuenta inactiva (ej. 'La cuenta seleccionada no está activa'), exceso de límite (ej. 'El monto excede el límite diario de $X para su perfil'), error de sistema (ej. 'No se pudo completar la operación. Intente nuevamente'), sesión expirada."
+    },
+    {
+      "regla": "NX-035",
+      "veredicto": "INCUMPLE",
+      "evidencia": "E1: 'saldo suficiente en la cuenta origen' — no especifica monto ejemplo concreto para derivar dato de prueba. E5: 'saldo de la cuenta origen es menor al monto ingresado' — no da ejemplos numéricos. E3: menciona 'comisión aplicable' sin especificar cálculo o valores. No hay reglas de derivación ni ejemplos concretos de montos, saldos, comisiones.",
+      "recomendacion": "Agregar tabla de datos de prueba o ejemplos concretos: ej. 'Cuenta origen con saldo $5,000, monto transferencia $1,000'. Especificar regla de cálculo de comisión (ej. '0.5% del monto, mínimo $5'). Incluir ejemplos para cada escenario."
+    },
+    {
+      "regla": "NX-040",
+      "veredicto": "INCUMPLE",
+      "evidencia": "No existen NFRs declarados sobre performance (ej. tiempo de respuesta del sistema, throughput), volumen (cantidad de transferencias concurrentes, tamaño de lote), disponibilidad o escalabilidad. BR3 menciona 'rápidamente' pero no es NFR cuantificado.",
+      "recomendacion": "Declarar NFRs: Performance (ej. 'Tiempo de respuesta ≤2 segundos para 95% de transacciones'), Volumen (ej. 'Soportar 1,000 transferencias concurrentes'), Disponibilidad (ej. '99.9% uptime'), o declarar 'N/A: NFRs definidos a nivel de épica/sistema'."
+    },
+    {
+      "regla": "NX-041",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU tiene interfaz de usuario: E2 'abre el formulario', E3 'pantalla de confirmación', E4 'descargar el comprobante en formato PDF', E5 'el sistema muestra el mensaje'. No hay consideración de accesibilidad WCAG 2.2 (lectores de pantalla, navegación por teclado, contraste, tamaños de fuente).",
+      "recomendacion": "Agregar requisito de accesibilidad: 'La interfaz debe cumplir WCAG 2.2 nivel AA: navegación completa por teclado, contraste mínimo 4.5:1, etiquetas ARIA para lectores de pantalla, tamaño de texto ajustable' o justificar N/A si se gestiona a nivel de sistema."
+    },
+    {
+      "regla": "NX-042",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja datos sensibles: precondición 'El cliente debe estar autenticado' implica credenciales, y opera sobre datos financieros (saldos, transferencias). No existe requisito de auditoría/logging de operaciones (quién, cuándo, qué cuenta, qué monto, IP origen, resultado).",
+      "recomendacion": "Agregar BR de auditoría: 'Toda transferencia (exitosa o rechazada) debe registrarse en log de auditoría con: timestamp, ID usuario, cuenta origen, cuenta destino, monto, resultado, IP origen. Retención mínima 7 años según normativa bancaria'."
+    },
+    {
+      "regla": "NX-043",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU es una operación bancaria con transferencia de fondos. No hay identificación de normativa aplicable: PCI-DSS (manejo de datos de pago), regulaciones bancarias locales (ej. UIF para prevención de lavado), GDPR/protección de datos personales, SOX (si aplica).",
+      "recomendacion": "Identificar y declarar normativa aplicable: 'PCI-DSS v4.0 (protección de datos transaccionales)', 'Regulación UIF/BCRA para trazabilidad de operaciones', 'GDPR Art. 32 (seguridad del tratamiento de datos personales)', o declarar 'N/A: cumplimiento gestionado a nivel de plataforma central'."
+    }
+  ],
+  "puntos_obtenidos": 41,
+  "puntos_totales": 93,
+  "rhi": 44.1,
+  "dictamen": "NO_APTO",
+  "criticos_incumplidos": [
+    "NX-021",
+    "NX-030",
+    "NX-031",
+    "NX-033"
+  ],
+  "resumen_por_severidad": {
+    "CRITICO": {
+      "cumple": 5,
+      "incumple": 4,
+      "no_aplica": 0
+    },
+    "ALTO": {
+      "cumple": 4,
+      "incumple": 6,
+      "no_aplica": 0
+    },
+    "MEDIO": {
+      "cumple": 2,
+      "incumple": 6,
+      "no_aplica": 0
+    },
+    "BAJO": {
+      "cumple": 0,
+      "incumple": 2,
+      "no_aplica": 0
+    }
+  }
+}

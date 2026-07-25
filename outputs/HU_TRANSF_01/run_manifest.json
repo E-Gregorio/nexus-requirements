@@ -1,0 +1,22 @@
+{
+  "hu_id": "HU_TRANSF_01",
+  "fuente": "..\\demo\\HU_TRANSF_01_original.md",
+  "timestamp": "2026-07-25T04:11:21",
+  "engine_version": "1.0.0",
+  "catalogo_version": "0.1.0",
+  "modelo": "claude-sonnet-4-5-20250929",
+  "rhi": 44.1,
+  "dictamen": "NO_APTO",
+  "gaps": 13,
+  "test_cases": 18,
+  "vcr": {
+    "valor": 3,
+    "costo": 2,
+    "probabilidad": 3,
+    "impacto": 3,
+    "riesgo": 9,
+    "vcr_total": 14,
+    "decision": "AUTOMATIZAR",
+    "origen": "PROPUESTO — ratificar en Planning Poker"
+  }
+}
