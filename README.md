@@ -12,9 +12,9 @@
 [![ISTQB](https://img.shields.io/badge/ISTQB-CTFL%20v4-success)]()
 [![ISO](https://img.shields.io/badge/ISO%2FIEC%2FIEEE-29119%20·%2029148-success)]()
 [![OWASP](https://img.shields.io/badge/OWASP-Top%2010%3A2021-red)]()
-[![Framework](https://img.shields.io/badge/QASL-Shift--Left%20Testing%20Framework-2563EB)](https://e-gregorio.github.io/qa-shiftleft-methodology/)
+[![Framework](https://img.shields.io/badge/QASL-Shift--Left%20Testing%20Framework-2563EB)](https://e-gregorio.github.io/qa-shift-left-framework/)
 
-*Parte del ecosistema **QASL** · Implementación ejecutable del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shiftleft-methodology/)*
+*Parte del ecosistema **QASL** · Implementación ejecutable del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shift-left-framework/)*
 
 </div>
 
@@ -157,7 +157,7 @@ Cuando un TC falla en ejecución, el diagnóstico viene incluido: el TC traza a 
 
 ## 📏 La norma ejecutable: Catálogo NX
 
-La base normativa no es un prompt: es un **catálogo versionado de 29 reglas verificables** (`catalog/nx_rules.yaml`), derivado del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shiftleft-methodology/) y sus estándares:
+La base normativa no es un prompt: es un **catálogo versionado de 29 reglas verificables** (`catalog/nx_rules.yaml`), derivado del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shift-left-framework/) y sus estándares:
 
 | Familia | Reglas | Evalúa | Evaluador |
 |---|---|---|---|
@@ -235,7 +235,7 @@ nexus-requirements/
 
 **Elyer Gregorio Maldonado** · Senior QA Automation Lead
 
-Creador del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shiftleft-methodology/) y del ecosistema QASL
+Autor de NEXUS Requirements · Integrador del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shift-left-framework/) en el ecosistema QASL
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-elyergregorio-0A66C2?logo=linkedin)](https://linkedin.com/in/elyergregorio)
 [![GitHub](https://img.shields.io/badge/GitHub-E--Gregorio-181717?logo=github)](https://github.com/E-Gregorio)
@@ -251,4 +251,4 @@ Creador del [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-
 
 **© 2026 Elyer Gregorio Maldonado — Todos los derechos reservados.**
 
-Este repositorio es *source-available* con fines de **evaluación profesional** (reclutadores, hiring managers, evaluadores técnicos). No se permite su uso, copia, modificación ni redistribución sin permiso escrito del autor. Ver [LICENSE](LICENSE) para los términos completos (EN/ES). La metodología [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shiftleft-methodology/) se publica por separado bajo CC BY-NC-ND 4.0.
+Este repositorio es *source-available* con fines de **evaluación profesional** (reclutadores, hiring managers, evaluadores técnicos). No se permite su uso, copia, modificación ni redistribución sin permiso escrito del autor. Ver [LICENSE](LICENSE) para los términos completos (EN/ES). La metodología [QASL Shift-Left Testing Framework](https://e-gregorio.github.io/qa-shift-left-framework/) se publica por separado bajo CC BY-NC-ND 4.0.
