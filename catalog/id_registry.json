@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "siguiente_numero": 3,
+  "asignados": {
+    "HU_LOGIN_01_original.md": "HU-001",
+    "HU_LOGIN_02_original.md": "HU-002"
+  }
+}

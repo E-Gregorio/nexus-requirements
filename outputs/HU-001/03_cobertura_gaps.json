@@ -1,0 +1,673 @@
+{
+  "hu_id": "HU-001",
+  "brs_mejoradas": [
+    {
+      "id": "BR1",
+      "descripcion": "El sistema valida usuario y contraseña contra la base de datos de credenciales y permite el acceso si ambos coinciden exactamente (case-sensitive para contraseña)"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "Si el usuario no existe o la contraseña es incorrecta, el sistema muestra el mensaje genérico 'Credenciales inválidas' sin especificar cuál campo falló (anti-enumeración OWASP A01:2021)"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "Después de iniciar sesión correctamente, el sistema genera un token de sesión único, redirige a la página de bienvenida mostrando el nombre del usuario y un botón 'Cerrar sesión' visible en la esquina superior derecha"
+    },
+    {
+      "id": "BR4",
+      "descripcion": "[NUEVA - PROPUESTA] Después de [PROPUESTO: 3] intentos fallidos consecutivos desde la misma IP en [PROPUESTO: 15 minutos], el sistema bloquea temporalmente la cuenta por [PROPUESTO: 30 minutos] y registra el evento en el log de auditoría (OWASP A07:2021, A09:2021) [VALOR PROPUESTO — confirmar con negocio]"
+    },
+    {
+      "id": "BR5",
+      "descripcion": "[NUEVA - PROPUESTA] El sistema registra en el log de auditoría cada intento de inicio de sesión (exitoso y fallido) incluyendo timestamp, IP de origen, usuario intentado y resultado, cumpliendo OWASP A09:2021 (Security Logging and Monitoring Failures) [PROPUESTO]"
+    },
+    {
+      "id": "BR6",
+      "descripcion": "[NUEVA - PROPUESTA] La contraseña debe transmitirse mediante HTTPS y almacenarse con hash criptográfico fuerte (ej. bcrypt, Argon2) con salt único, nunca en texto plano (OWASP A02:2021, A04:2021) [PROPUESTO]"
+    },
+    {
+      "id": "BR7",
+      "descripcion": "[NUEVA - PROPUESTA] El token de sesión debe ser un UUID v4 de un solo uso, con tiempo de expiración de [PROPUESTO: 30 minutos] de inactividad, y se invalida completamente al cerrar sesión (OWASP A07:2021) [VALOR PROPUESTO — confirmar con negocio]"
+    }
+  ],
+  "coberturas": [
+    {
+      "br_id": "BR1",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR2",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR3",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR4",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR5",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR6",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    },
+    {
+      "br_id": "BR7",
+      "escenarios_cubren": [],
+      "cobertura_porcentaje": 0,
+      "tiene_positivo": false,
+      "tiene_negativo": false
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "br_id": "BR1",
+      "tipo_gap": "falta_positivo",
+      "severidad": "CRITICO",
+      "descripcion": "BR1 (validación exitosa de credenciales) carece de escenario positivo que verifique el flujo de autenticación correcta",
+      "escenario_sugerido": {
+        "titulo": "E1 - Login exitoso con credenciales válidas",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que existe un usuario registrado con username 'juan.perez' y contraseña 'Pass123!'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'juan.perez' en el campo Usuario"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario ingresa 'Pass123!' en el campo Contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario hace clic en el botón 'Iniciar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema valida las credenciales correctamente"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema genera un token de sesión único"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema redirige a la página de bienvenida"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-002",
+      "br_id": "BR1",
+      "tipo_gap": "falta_negativo",
+      "severidad": "CRITICO",
+      "descripcion": "BR1 carece de escenario negativo que verifique rechazo de credenciales incorrectas (contraseña errónea)",
+      "escenario_sugerido": {
+        "titulo": "E2 - Login fallido con contraseña incorrecta",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que existe un usuario registrado con username 'juan.perez' y contraseña 'Pass123!'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'juan.perez' en el campo Usuario"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario ingresa 'PassIncorrecta' en el campo Contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario hace clic en el botón 'Iniciar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema rechaza el acceso"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema muestra el mensaje 'Credenciales inválidas'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario permanece en la página de inicio de sesión"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-003",
+      "br_id": "BR2",
+      "tipo_gap": "falta_positivo",
+      "severidad": "CRITICO",
+      "descripcion": "BR2 (mensaje de error por datos incorrectos) carece de escenario positivo que verifique la exhibición del mensaje genérico anti-enumeración",
+      "escenario_sugerido": {
+        "titulo": "E3 - Mensaje de error genérico con usuario inexistente",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que NO existe un usuario registrado con username 'usuario.falso'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'usuario.falso' en el campo Usuario"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario ingresa 'cualquier_password' en el campo Contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario hace clic en el botón 'Iniciar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Credenciales inválidas'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO revela que el usuario no existe"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-004",
+      "br_id": "BR2",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "BR2 carece de escenario negativo que verifique comportamiento cuando se envían campos vacíos",
+      "escenario_sugerido": {
+        "titulo": "E4 - Login con campos vacíos",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario deja vacío el campo Usuario"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario deja vacío el campo Contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario hace clic en el botón 'Iniciar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Por favor complete todos los campos'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO procesa la validación contra la base de datos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-005",
+      "br_id": "BR3",
+      "tipo_gap": "falta_positivo",
+      "severidad": "ALTO",
+      "descripcion": "BR3 (página de bienvenida con opción de cerrar sesión) carece de escenario positivo que verifique la exhibición correcta de elementos post-login",
+      "escenario_sugerido": {
+        "titulo": "E5 - Visualización de página de bienvenida después de login exitoso",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez' ha iniciado sesión correctamente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el sistema carga la página de bienvenida"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Bienvenido, Juan Pérez'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema muestra el botón 'Cerrar sesión' visible en la esquina superior derecha"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el token de sesión está activo en las cookies del navegador"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-006",
+      "br_id": "BR3",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "BR3 carece de escenario negativo que verifique el cierre de sesión y la invalidación del token",
+      "escenario_sugerido": {
+        "titulo": "E6 - Cierre de sesión exitoso",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez' ha iniciado sesión correctamente"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de bienvenida"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario hace clic en el botón 'Cerrar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema invalida el token de sesión actual"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema redirige a la página de inicio de sesión"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema elimina las cookies de sesión del navegador"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-007",
+      "br_id": "BR4",
+      "tipo_gap": "sin_escenarios",
+      "severidad": "CRITICO",
+      "descripcion": "BR4 (bloqueo por múltiples intentos fallidos) carece completamente de escenarios de verificación para protección anti-fuerza-bruta (OWASP A07:2021)",
+      "escenario_sugerido": {
+        "titulo": "E7 - Bloqueo temporal después de 3 intentos fallidos consecutivos [VALOR PROPUESTO — confirmar con negocio]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que existe un usuario registrado con username 'juan.perez'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa 'juan.perez' y una contraseña incorrecta"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el usuario repite el proceso 2 veces más (total 3 intentos fallidos)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "todos los intentos ocurren desde la misma dirección IP en menos de [PROPUESTO: 15 minutos]"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema bloquea temporalmente la cuenta por [PROPUESTO: 30 minutos]"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema muestra el mensaje 'Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente nuevamente en 30 minutos'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema registra el evento en el log de auditoría con IP, timestamp y usuario afectado"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-008",
+      "br_id": "BR4",
+      "tipo_gap": "falta_limite",
+      "severidad": "CRITICO",
+      "descripcion": "BR4 establece límites numéricos ([PROPUESTO: 3] intentos, [PROPUESTO: 15 minutos], [PROPUESTO: 30 minutos]) sin escenarios de frontera que verifiquen comportamiento en valores exactos, -1, +1",
+      "escenario_sugerido": {
+        "titulo": "E8 - Intento 2 de 3 no bloquea la cuenta (frontera -1) [VALOR PROPUESTO — confirmar con negocio]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que existe un usuario registrado con username 'juan.perez'"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa credenciales incorrectas exactamente 2 veces consecutivas"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Credenciales inválidas'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO bloquea la cuenta"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema permite un tercer intento"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-009",
+      "br_id": "BR5",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR5 (auditoría de eventos de autenticación) carece de escenarios que verifiquen el registro completo de eventos en logs según OWASP A09:2021",
+      "escenario_sugerido": {
+        "titulo": "E9 - Registro en log de auditoría de intento exitoso [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que existe un usuario registrado con username 'juan.perez'"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario inicia sesión correctamente con credenciales válidas desde IP 192.168.1.100"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en el log de auditoría una entrada con timestamp actual"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'usuario: juan.perez'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'ip_origen: 192.168.1.100'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'resultado: EXITOSO'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'token_sesion: [UUID generado]'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-010",
+      "br_id": "BR5",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR5 carece de escenario que verifique el registro de intentos fallidos en el log de auditoría",
+      "escenario_sugerido": {
+        "titulo": "E10 - Registro en log de auditoría de intento fallido [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa credenciales inválidas desde IP 192.168.1.100"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en el log de auditoría una entrada con timestamp actual"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'usuario_intentado: [valor ingresado]'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'ip_origen: 192.168.1.100'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'resultado: FALLIDO'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el log incluye el campo 'razon: credenciales_invalidas'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-011",
+      "br_id": "BR6",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR6 (transmisión segura y almacenamiento con hash) carece de escenarios que verifiquen implementación de controles criptográficos (OWASP A02:2021, A04:2021)",
+      "escenario_sugerido": {
+        "titulo": "E11 - Transmisión de contraseña mediante HTTPS [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de inicio de sesión"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que la URL de la página es 'https://sistema.ejemplo.com/login'"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario ingresa credenciales y hace clic en 'Iniciar sesión'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema transmite los datos mediante protocolo HTTPS (TLS 1.2 o superior)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema NO transmite la contraseña en texto plano en el cuerpo de la petición"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema valida el certificado SSL/TLS del servidor"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-012",
+      "br_id": "BR6",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR6 carece de escenario que verifique el almacenamiento seguro con hash criptográfico (no reversible)",
+      "escenario_sugerido": {
+        "titulo": "E12 - Almacenamiento de contraseña con hash criptográfico [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que se está registrando un nuevo usuario con contraseña 'Pass123!'"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el sistema almacena la contraseña en la base de datos"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema genera un hash criptográfico usando algoritmo bcrypt, scrypt o Argon2"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema genera un salt único aleatorio para ese usuario"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema almacena el hash resultante (nunca la contraseña en texto plano)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el hash almacenado NO puede revertirse a la contraseña original"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-013",
+      "br_id": "BR7",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR7 (token de sesión único con expiración) carece de escenarios que verifiquen generación, unicidad e invalidación según OWASP A07:2021",
+      "escenario_sugerido": {
+        "titulo": "E13 - Generación de token de sesión único UUID v4 [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez' ha iniciado sesión correctamente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el sistema genera el token de sesión"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema genera un UUID versión 4 (aleatorio) único"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el token tiene longitud mínima de 128 bits (16 bytes)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el token NO es predecible ni secuencial"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema asocia el token al usuario 'juan.perez' en la tabla de sesiones activas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-014",
+      "br_id": "BR7",
+      "tipo_gap": "falta_limite",
+      "severidad": "CRITICO",
+      "descripcion": "BR7 establece tiempo de expiración de [PROPUESTO: 30 minutos] sin escenarios de frontera (exacto, -1, +1 minutos)",
+      "escenario_sugerido": {
+        "titulo": "E14 - Expiración de token después de 30 minutos de inactividad [VALOR PROPUESTO — confirmar con negocio]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez' inició sesión hace exactamente [PROPUESTO: 30 minutos]"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que NO ha habido actividad del usuario en ese período"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario intenta acceder a una página protegida"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema detecta que el token ha expirado"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema invalida el token de sesión"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema redirige a la página de inicio de sesión"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema muestra el mensaje 'Su sesión ha expirado. Por favor inicie sesión nuevamente'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-015",
+      "br_id": "BR7",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR7 (invalidación de token al cerrar sesión) carece de escenario que verifique que un token cerrado no puede reutilizarse",
+      "escenario_sugerido": {
+        "titulo": "E15 - Token invalidado no puede reutilizarse [PROPUESTO]",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario 'juan.perez' tenía un token de sesión activo 'abc123-uuid-token'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "que el usuario cerró sesión correctamente"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "un atacante intenta reutilizar el token 'abc123-uuid-token' para acceder a una página protegida"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema rechaza el token como inválido"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema redirige a la página de inicio de sesión"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el sistema registra el intento de reutilización de token en el log de auditoría"
+          }
+        ]
+      }
+    }
+  ],
+  "resumen": {
+    "total_brs": 7,
+    "brs_sin_cobertura": 7,
+    "brs_cobertura_parcial": 0,
+    "brs_cobertura_completa": 0,
+    "total_gaps": 15,
+    "gaps_criticos": 12,
+    "gaps_altos": 3,
+    "gaps_medios": 0,
+    "gaps_bajos": 0,
+    "cobertura_inicial_promedio": 0,
+    "cobertura_proyectada": 100,
+    "escenarios_actuales": 0,
+    "escenarios_sugeridos": 15
+  }
+}

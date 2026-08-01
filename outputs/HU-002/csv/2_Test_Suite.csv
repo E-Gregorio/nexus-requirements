@@ -1,0 +1,14 @@
+EPIC_ID,US_ID,TS_ID,Nombre_Suite,Descripcion_Suite,Prioridad,Categoria,Tecnica_Aplicada,TC_Generados,Estado,QA_Framework,Ambiente_Testing,Total_TC
+EP-001,HU-002,TS-01,Suite de Flujos Positivos - Autenticación,"Valida login exitoso, logout y acceso autorizado a páginas seguras",Alta,Funcional,Partición de Equivalencia y Análisis Causa-Efecto,"TC-01: Validar login exitoso con credenciales válidas
+TC-02: Validar logout exitoso e invalidación de sesión
+TC-03: Validar enmascaramiento visual del campo contraseña",Planning,Playwright,QA,3
+EP-001,HU-002,TS-02,Suite de Flujos Negativos - Autenticación,"Valida rechazos de credenciales inválidas, acceso sin autenticación, campos vacíos y límites",Alta,Funcional - Negativa,"Partición de Equivalencia, Valores Límite y Tabla de Decisión","TC-04: Validar rechazo de login con usuario inexistente
+TC-05: Validar rechazo de login con contraseña incorrecta
+TC-06: Validar bloqueo de acceso directo a página segura sin autenticación
+TC-07: Validar comportamiento de logout sin sesión activa
+TC-08: Validar rechazo de login con campos vacíos",Planning,Playwright,QA,5
+EP-001,HU-002,TS-03,Suite de Seguridad OWASP - Autenticación,"Valida controles anti-enumeración, brute force, inyección, auditoría y gestión de sesiones",Alta,Seguridad - OWASP,"Análisis de Riesgos OWASP A01, A03, A07, A09","TC-09: Validar mensaje genérico anti-enumeración en errores de login
+TC-10: Validar bloqueo de cuenta tras múltiples intentos fallidos de login
+TC-11: Validar auditoría de eventos de autenticación en logs del sistema
+TC-12: Validar expiración de sesión por inactividad
+TC-13: Validar protección contra inyección SQL en campo usuario",Planning,Playwright + ZAP,QA,5

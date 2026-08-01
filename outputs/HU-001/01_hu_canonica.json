@@ -1,0 +1,47 @@
+{
+  "id": "HU-001",
+  "nombre": "Inicio de sesión",
+  "descripcion": {
+    "como": "usuario del sistema",
+    "quiero": "iniciar sesión con mi usuario y contraseña",
+    "para": "acceder a mi cuenta"
+  },
+  "epica": "NO_ESPECIFICADO",
+  "reglas_negocio": [
+    {
+      "id": "BR1",
+      "descripcion": "El sistema valida usuario y contraseña y permite el acceso si son correctos",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "Si los datos son incorrectos, el sistema muestra un mensaje de error",
+      "origen": "inferida_de_texto"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "Después de iniciar sesión correctamente, se muestra una página de bienvenida con opción de cerrar sesión",
+      "origen": "inferida_de_texto"
+    }
+  ],
+  "escenarios": [],
+  "dentro_alcance": "NO_ESPECIFICADO",
+  "fuera_alcance": "NO_ESPECIFICADO",
+  "estimaciones": "NO_ESPECIFICADO",
+  "notas": "Los criterios de aceptación presentes ('Login exitoso con credenciales válidas' y 'Login fallido con credenciales inválidas') son declaraciones de alto nivel que pueden formalizarse con estructura Gherkin (DADO/CUANDO/ENTONCES) para hacerlos verificables y ejecutables. Se recomienda expandir cada criterio en escenarios detallados que incluyan precondiciones, acciones específicas y resultados esperados observables. Por ejemplo, el criterio 'Login exitoso' podría desglosarse especificando qué credenciales se usan, qué acción realiza el usuario, y qué elementos concretos debe mostrar la página de bienvenida.",
+  "_meta": {
+    "campos_no_especificados": [
+      "epica",
+      "dentro_alcance",
+      "fuera_alcance",
+      "estimaciones"
+    ],
+    "supuestos_normalizacion": [
+      "Las reglas de negocio fueron normalizadas como BR1, BR2, BR3 con origen 'inferida_de_texto' porque aparecían como viñetas sin numeración explícita",
+      "Los criterios de aceptación no se registraron como escenarios porque carecen de estructura Gherkin verificable (no especifican pasos DADO/CUANDO/ENTONCES)",
+      "Se preservó el texto original de las reglas de negocio con correcciones ortográficas menores para mantener fidelidad a la fuente"
+    ],
+    "fuente": "HU_LOGIN_01_original.md",
+    "version": 1
+  }
+}

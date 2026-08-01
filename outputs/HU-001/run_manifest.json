@@ -1,0 +1,13 @@
+{
+  "hu_id": "HU-001",
+  "fuente": "..\\input\\HU_LOGIN_01_original.md",
+  "timestamp": "2026-08-01T10:31:29",
+  "engine_version": "1.0.0",
+  "catalogo_version": "0.1.0",
+  "modelo": "claude-sonnet-4-5-20250929",
+  "rhi": 19.4,
+  "dictamen": "NO_APTO",
+  "gaps": 15,
+  "test_cases": 15,
+  "vcr": null
+}

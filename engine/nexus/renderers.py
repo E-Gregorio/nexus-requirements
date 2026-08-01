@@ -151,15 +151,47 @@ _CSS = """
   .scenario-content.sugerido { border-left: 3px solid #4caf50; }
   .tag-sugerido { background: #4caf50; color: white; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; }
   .tag-propuesto { background: #F59E0B; color: white; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+  .tag-no-especificado { background: #64748B; color: white; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 8px; }
 """
 
+_NO_ESPECIFICADO_HTML = '<span class="tag-no-especificado">NO_ESPECIFICADO — la HU original no lo definió</span>'
 
-def _campo(valor, vacio="—"):
+
+def _campo(valor, vacio=None):
     if valor == "NO_ESPECIFICADO" or valor is None:
-        return vacio
+        return _NO_ESPECIFICADO_HTML if vacio is None else vacio
     if isinstance(valor, list):
         return "<br>".join(f"&bull; {v}" for v in valor)
     return str(valor)
+
+
+def _campo_texto(valor, vacio="NO_ESPECIFICADO", sep="\n"):
+    """Como _campo() pero en texto plano (sin HTML) — para uso en CSV."""
+    if valor == "NO_ESPECIFICADO" or valor is None:
+        return vacio
+    if isinstance(valor, list):
+        return sep.join(str(v) for v in valor)
+    return str(valor)
+
+
+def _merge_brs(reglas_negocio, brs_mejoradas):
+    """Combina las BRs originales de la HU con las versiones mejoradas del
+    análisis de cobertura SIN perder ninguna: si brs_mejoradas (que el modelo
+    a veces devuelve incompleta, solo con las BRs que decidió reescribir) no
+    trae una BR original, se conserva la original tal cual — nunca se descarta
+    contenido real de la HU. Las BRs totalmente nuevas propuestas por cobertura
+    se agregan al final."""
+    mejoradas_por_id = {b["id"]: b for b in (brs_mejoradas or []) if isinstance(b, dict) and b.get("id")}
+    vistas = set()
+    resultado = []
+    for b in reglas_negocio or []:
+        bid = b.get("id")
+        resultado.append(mejoradas_por_id.get(bid, b))
+        vistas.add(bid)
+    for b in (brs_mejoradas or []):
+        if isinstance(b, dict) and b.get("id") not in vistas:
+            resultado.append(b)
+    return resultado
 
 
 def _marcar_propuestos(texto: str) -> str:
@@ -176,10 +208,8 @@ def _render_escenario(titulo, pasos, sugerido: bool, extra_tag: str = "") -> str
             f'<div class="{clase}">{cuerpo}</div>')
 
 
-def render_hu_ideal(hu, cert, cob) -> str:
-    brs_mejoradas = cob.get("brs_mejoradas") or [
-        {"id": b["id"], "descripcion": b["descripcion"]} for b in hu["reglas_negocio"]
-    ]
+def render_hu_ideal(hu, cert, cob, vcr) -> str:
+    brs_mejoradas = _merge_brs(hu["reglas_negocio"], cob.get("brs_mejoradas"))
     brs_html = "<br>".join(
         f"{b['id']}: {_marcar_propuestos(b['descripcion'])}" for b in brs_mejoradas
     )
@@ -194,10 +224,22 @@ def render_hu_ideal(hu, cert, cob) -> str:
             escenarios_html.append(_render_escenario(sug.get("titulo", g["id"]), sug["pasos"], True, extra))
 
     epica = hu.get("epica")
-    epica_txt = f"{epica['id']}: {epica['nombre']}" if isinstance(epica, dict) else "— (definir)"
+    epica_txt = f"{epica['id']}: {epica['nombre']}" if isinstance(epica, dict) else _campo(epica)
     fa = hu.get("fuera_alcance")
     fa_txt = ("<br>".join(f"&bull; {i['item']} — <em>{i.get('cubierto_por','')}</em>" for i in fa)
-              if isinstance(fa, list) else "—")
+              if isinstance(fa, list) else _campo(fa))
+
+    if vcr:
+        origen_txt = vcr.get("origen", "")
+        estim_txt = (
+            f"V={vcr['valor']} · C={vcr['costo']} · P={vcr['probabilidad']} · I={vcr['impacto']}<br>"
+            f"<strong>Riesgo (R) = P × I = {vcr['probabilidad']} × {vcr['impacto']} = {vcr['riesgo']}</strong><br>"
+            f"<strong>VCR Total = V + C + R = {vcr['valor']} + {vcr['costo']} + {vcr['riesgo']} "
+            f"= {vcr['vcr_total']} → {vcr['decision']}</strong>"
+            + (f"<br><em>{origen_txt}</em>" if origen_txt else "")
+        )
+    else:
+        estim_txt = _campo("NO_ESPECIFICADO")
 
     return f"""<!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8">
@@ -213,6 +255,7 @@ def render_hu_ideal(hu, cert, cob) -> str:
     <tr><td class="label">Nombre</td><td>{hu['nombre']}</td></tr>
     <tr><td class="label">Épica</td><td>{epica_txt}</td></tr>
     <tr><td class="label">Prioridad</td><td>{_campo(hu.get('prioridad'))}</td></tr>
+    <tr><td class="label">Estado</td><td>{_campo(hu.get('estado'))}</td></tr>
     <tr><td class="label">Descripción</td><td><strong>Como</strong> {hu['descripcion']['como']}<br>
       <strong>Quiero</strong> {hu['descripcion']['quiero']}<br>
       <strong>Para</strong> {hu['descripcion']['para']}</td></tr>
@@ -220,12 +263,13 @@ def render_hu_ideal(hu, cert, cob) -> str:
     <tr><td class="label">Reglas de Negocio</td><td>{brs_html}</td></tr>
     <tr><td class="label">Precondiciones</td><td>{_campo(hu.get('precondiciones'))}</td></tr>
     <tr><td class="label">Dependencias</td><td>{_campo(hu.get('dependencias'))}</td></tr>
+    <tr><td class="label">Estimaciones (VCR)</td><td>{estim_txt}</td></tr>
     <tr><td class="label">Escenarios de Prueba (Criterios de Aceptación)</td>
         <td>{''.join(escenarios_html)}</td></tr>
     <tr><td class="label">Dentro del Alcance</td><td>{_campo(hu.get('dentro_alcance'))}</td></tr>
     <tr><td class="label">Fuera del Alcance</td><td>{fa_txt}</td></tr>
     <tr><td class="label">Referencias</td><td>{_campo(hu.get('referencias'))}</td></tr>
-    <tr><td class="label">Notas</td><td>{_campo(hu.get('notas'), '')}</td></tr>
+    <tr><td class="label">Notas / Comentarios</td><td>{_campo(hu.get('notas'), '')}</td></tr>
   </table>
 </div></body></html>"""
 
@@ -248,26 +292,39 @@ def render_csvs(hu, cert, cob, activos, vcr) -> dict:
     epic_id = epica["id"] if isinstance(epica, dict) else "EP-000"
     epic_txt = f"{epica['id']}: {epica['nombre']}" if isinstance(epica, dict) else "NO_ESPECIFICADO"
 
-    brs = cob.get("brs_mejoradas") or hu["reglas_negocio"]
-    brs_txt = " | ".join(f"{b['id']}: {b['descripcion']}" for b in brs)
-    escenarios_txt = " | ".join(
+    brs = _merge_brs(hu["reglas_negocio"], cob.get("brs_mejoradas"))
+    brs_txt = "\n".join(f"{b['id']}: {b['descripcion']}" for b in brs)
+    escenarios_txt = "\n".join(
         f"{t['escenario_id']}: {t['titulo']}" for t in activos["test_cases"]
     )
     res = cob["resumen"]
 
+    desc = hu.get("descripcion") or {}
+    fa = hu.get("fuera_alcance")
+    fa_txt = ("\n".join(f"{i.get('item','')} — {i.get('cubierto_por','')}" for i in fa)
+              if isinstance(fa, list) else _campo_texto(fa))
+
     us = _csv_string(
         ["EPIC_ID", "ID_HU", "Nombre_HU", "Epica", "Estado", "Prioridad",
+         "Descripcion_Como", "Descripcion_Quiero", "Descripcion_Para",
+         "Usuarios_Roles", "Reglas_Negocio", "Precondiciones_HU", "Dependencias",
          "VCR_Valor", "VCR_Costo", "VCR_Riesgo", "VCR_Total", "Requiere_Regresion",
          "Es_Deuda_Tecnica", "Cobertura_Inicial", "Cobertura_Proyectada",
-         "Dictamen_NX", "RHI", "Criterios_Aceptacion", "Reglas_Negocio"],
+         "Dictamen_NX", "RHI", "Criterios_Aceptacion", "Dentro_Alcance",
+         "Fuera_Alcance", "Referencias", "Notas"],
         [[epic_id, hu["id"], hu["nombre"], epic_txt,
-          "Analisis Estatico Completado", _campo(hu.get("prioridad")),
+          "Analisis Estatico Completado", _campo_texto(hu.get("prioridad")),
+          desc.get("como", ""), desc.get("quiero", ""), desc.get("para", ""),
+          _campo_texto(hu.get("usuarios_roles")), brs_txt,
+          _campo_texto(hu.get("precondiciones")), _campo_texto(hu.get("dependencias")),
           vcr["valor"] if vcr else "", vcr["costo"] if vcr else "",
           vcr["riesgo"] if vcr else "", vcr["vcr_total"] if vcr else "",
           "Si" if (vcr and vcr["decision"] == "AUTOMATIZAR") else "No",
           "Si" if (vcr and vcr["decision"] == "AUTOMATIZAR") else "No",
           f"{res['cobertura_inicial_promedio']}%", f"{res['cobertura_proyectada']}%",
-          cert["dictamen"], cert["rhi"], escenarios_txt, brs_txt]],
+          cert["dictamen"], cert["rhi"], escenarios_txt,
+          _campo_texto(hu.get("dentro_alcance")), fa_txt,
+          _campo_texto(hu.get("referencias")), _campo_texto(hu.get("notas"), vacio="")]],
     )
 
     suites_rows = []
@@ -276,7 +333,7 @@ def render_csvs(hu, cert, cob, activos, vcr) -> dict:
         suites_rows.append([
             epic_id, hu["id"], s["ts_id"], s["nombre"], s.get("descripcion", ""),
             s.get("prioridad", "Alta"), s["categoria"], s.get("tecnica", ""),
-            " | ".join(f"{t['tc_id']}: {t['titulo']}" for t in tcs),
+            "\n".join(f"{t['tc_id']}: {t['titulo']}" for t in tcs),
             "Planning", s.get("framework_sugerido", "Playwright + Newman"), "QA", len(tcs),
         ])
     ts = _csv_string(
@@ -290,7 +347,7 @@ def render_csvs(hu, cert, cob, activos, vcr) -> dict:
                     if p["prc_id"] in t.get("prcs_asociadas", [])]
         prc_rows.append([
             p["prc_id"], p["titulo"], p.get("descripcion", ""),
-            " | ".join(p.get("pasos_setup", [])), p.get("datos_requeridos", ""),
+            "\n".join(p.get("pasos_setup", [])), p.get("datos_requeridos", ""),
             p.get("estado_sistema", ""), p.get("categoria", ""),
             "Si" if p.get("reutilizable", True) else "No", ", ".join(tcs_asoc),
         ])

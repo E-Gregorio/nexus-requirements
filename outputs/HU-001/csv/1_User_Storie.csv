@@ -1,0 +1,22 @@
+EPIC_ID,ID_HU,Nombre_HU,Epica,Estado,Prioridad,Descripcion_Como,Descripcion_Quiero,Descripcion_Para,Usuarios_Roles,Reglas_Negocio,Precondiciones_HU,Dependencias,VCR_Valor,VCR_Costo,VCR_Riesgo,VCR_Total,Requiere_Regresion,Es_Deuda_Tecnica,Cobertura_Inicial,Cobertura_Proyectada,Dictamen_NX,RHI,Criterios_Aceptacion,Dentro_Alcance,Fuera_Alcance,Referencias,Notas
+EP-000,HU-001,Inicio de sesión,NO_ESPECIFICADO,Analisis Estatico Completado,NO_ESPECIFICADO,usuario del sistema,iniciar sesión con mi usuario y contraseña,acceder a mi cuenta,NO_ESPECIFICADO,"BR1: El sistema valida usuario y contraseña contra la base de datos de credenciales y permite el acceso si ambos coinciden exactamente (case-sensitive para contraseña)
+BR2: Si el usuario no existe o la contraseña es incorrecta, el sistema muestra el mensaje genérico 'Credenciales inválidas' sin especificar cuál campo falló (anti-enumeración OWASP A01:2021)
+BR3: Después de iniciar sesión correctamente, el sistema genera un token de sesión único, redirige a la página de bienvenida mostrando el nombre del usuario y un botón 'Cerrar sesión' visible en la esquina superior derecha
+BR4: [NUEVA - PROPUESTA] Después de [PROPUESTO: 3] intentos fallidos consecutivos desde la misma IP en [PROPUESTO: 15 minutos], el sistema bloquea temporalmente la cuenta por [PROPUESTO: 30 minutos] y registra el evento en el log de auditoría (OWASP A07:2021, A09:2021) [VALOR PROPUESTO — confirmar con negocio]
+BR5: [NUEVA - PROPUESTA] El sistema registra en el log de auditoría cada intento de inicio de sesión (exitoso y fallido) incluyendo timestamp, IP de origen, usuario intentado y resultado, cumpliendo OWASP A09:2021 (Security Logging and Monitoring Failures) [PROPUESTO]
+BR6: [NUEVA - PROPUESTA] La contraseña debe transmitirse mediante HTTPS y almacenarse con hash criptográfico fuerte (ej. bcrypt, Argon2) con salt único, nunca en texto plano (OWASP A02:2021, A04:2021) [PROPUESTO]
+BR7: [NUEVA - PROPUESTA] El token de sesión debe ser un UUID v4 de un solo uso, con tiempo de expiración de [PROPUESTO: 30 minutos] de inactividad, y se invalida completamente al cerrar sesión (OWASP A07:2021) [VALOR PROPUESTO — confirmar con negocio]",NO_ESPECIFICADO,NO_ESPECIFICADO,,,,,No,No,0%,100%,NO_APTO,19.4,"E1: Validar login exitoso con credenciales válidas
+E5: Validar visualización de página de bienvenida con elementos post-login
+E6: Validar cierre de sesión con invalidación de token
+E2: Validar rechazo con contraseña incorrecta
+E4: Validar rechazo con campos vacíos
+E8: Validar que intento 2 de 3 NO bloquea cuenta (valor frontera -1)
+E14: Validar expiración de token después de 30 minutos de inactividad (valor frontera exacto)
+E3: Validar mensaje genérico con usuario inexistente (anti-enumeración OWASP A01)
+E7: Validar bloqueo temporal después de 3 intentos fallidos consecutivos (OWASP A07)
+E9: Validar registro en log de auditoría de intento exitoso (OWASP A09)
+E10: Validar registro en log de auditoría de intento fallido (OWASP A09)
+E11: Validar transmisión de contraseña mediante HTTPS con TLS 1.2+ (OWASP A02/A04)
+E12: Validar almacenamiento de contraseña con hash criptográfico bcrypt/Argon2 (OWASP A02/A04)
+E13: Validar generación de token de sesión UUID v4 único y aleatorio (OWASP A07)
+E15: Validar que token invalidado NO puede reutilizarse (OWASP A07)",NO_ESPECIFICADO,NO_ESPECIFICADO,NO_ESPECIFICADO,"Los criterios de aceptación presentes ('Login exitoso con credenciales válidas' y 'Login fallido con credenciales inválidas') son declaraciones de alto nivel que pueden formalizarse con estructura Gherkin (DADO/CUANDO/ENTONCES) para hacerlos verificables y ejecutables. Se recomienda expandir cada criterio en escenarios detallados que incluyan precondiciones, acciones específicas y resultados esperados observables. Por ejemplo, el criterio 'Login exitoso' podría desglosarse especificando qué credenciales se usan, qué acción realiza el usuario, y qué elementos concretos debe mostrar la página de bienvenida."

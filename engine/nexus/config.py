@@ -17,6 +17,7 @@ OUTPUTS_DIR = ROOT_DIR / "outputs"
 
 NX_RULES_FILE = CATALOG_DIR / "nx_rules.yaml"
 VCR_POLICY_FILE = CATALOG_DIR / "vcr_policy.yaml"
+ID_REGISTRY_FILE = CATALOG_DIR / "id_registry.json"
 
 
 def load_env():

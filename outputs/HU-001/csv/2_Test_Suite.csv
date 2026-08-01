@@ -1,0 +1,16 @@
+EPIC_ID,US_ID,TS_ID,Nombre_Suite,Descripcion_Suite,Prioridad,Categoria,Tecnica_Aplicada,TC_Generados,Estado,QA_Framework,Ambiente_Testing,Total_TC
+EP-000,HU-001,TS-01,Suite de Flujos Positivos - Autenticación,"Valida flujos exitosos de login, visualización de bienvenida y cierre de sesión",Alta,Funcional,,"TC-01: Validar login exitoso con credenciales válidas
+TC-02: Validar visualización de página de bienvenida con elementos post-login
+TC-03: Validar cierre de sesión con invalidación de token",Planning,Playwright,QA,3
+EP-000,HU-001,TS-02,Suite de Flujos Negativos - Validaciones,"Valida rechazos, mensajes de error, validaciones de campos y límites de seguridad",Alta,Funcional - Negativa,,"TC-04: Validar rechazo con contraseña incorrecta
+TC-05: Validar rechazo con campos vacíos
+TC-06: Validar que intento 2 de 3 NO bloquea cuenta (valor frontera -1)
+TC-07: Validar expiración de token después de 30 minutos de inactividad (valor frontera exacto)",Planning,Playwright,QA,4
+EP-000,HU-001,TS-03,Suite de Seguridad - OWASP,"Valida controles anti-enumeración, anti-fuerza-bruta, auditoría, criptografía y gestión de tokens",Crítica,Seguridad - OWASP,,"TC-08: Validar mensaje genérico con usuario inexistente (anti-enumeración OWASP A01)
+TC-09: Validar bloqueo temporal después de 3 intentos fallidos consecutivos (OWASP A07)
+TC-10: Validar registro en log de auditoría de intento exitoso (OWASP A09)
+TC-11: Validar registro en log de auditoría de intento fallido (OWASP A09)
+TC-12: Validar transmisión de contraseña mediante HTTPS con TLS 1.2+ (OWASP A02/A04)
+TC-13: Validar almacenamiento de contraseña con hash criptográfico bcrypt/Argon2 (OWASP A02/A04)
+TC-14: Validar generación de token de sesión UUID v4 único y aleatorio (OWASP A07)
+TC-15: Validar que token invalidado NO puede reutilizarse (OWASP A07)",Planning,Playwright + Newman + ZAP,QA,8

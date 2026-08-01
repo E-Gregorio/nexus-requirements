@@ -12,7 +12,7 @@
         "type": "object",
         "required": ["ts_id", "nombre", "categoria"],
         "properties": {
-          "ts_id": { "type": "string", "description": "Determinista: {HU}_TS{NN}" },
+          "ts_id": { "type": "string", "description": "Determinista y secuencial: TS-NN" },
           "nombre": { "type": "string" },
           "categoria": { "enum": ["Funcional", "Funcional - Negativa", "Seguridad - OWASP", "Integracion"] },
           "tecnica": { "type": "string" },
@@ -27,7 +27,7 @@
         "type": "object",
         "required": ["prc_id", "titulo", "categoria"],
         "properties": {
-          "prc_id": { "type": "string", "description": "Determinista: {HU}_PRC{NN}" },
+          "prc_id": { "type": "string", "description": "Determinista y secuencial: PRC-NN" },
           "titulo": { "type": "string" },
           "descripcion": { "type": "string" },
           "pasos_setup": { "type": "array", "items": { "type": "string" } },
@@ -44,7 +44,7 @@
         "type": "object",
         "required": ["tc_id", "ts_id", "titulo", "escenario_id", "brs_cubiertas", "pasos"],
         "properties": {
-          "tc_id": { "type": "string", "description": "Determinista: {HU}_TC_{E} — idempotente por diseño" },
+          "tc_id": { "type": "string", "description": "Determinista y secuencial: TC-NN, agrupado por suite (idempotente por diseño)" },
           "ts_id": { "type": "string" },
           "titulo": { "type": "string" },
           "tipo_prueba": { "type": "string" },

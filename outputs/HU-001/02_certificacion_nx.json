@@ -1,0 +1,199 @@
+{
+  "hu_id": "HU-001",
+  "version_hu": 1,
+  "version_catalogo": "0.1.0",
+  "evaluaciones": [
+    {
+      "regla": "NX-001",
+      "veredicto": "INCUMPLE",
+      "evidencia": "ID 'HU-001' no cumple HU_<MODULO>_<NN>"
+    },
+    {
+      "regla": "NX-002",
+      "veredicto": "CUMPLE",
+      "evidencia": "Como/Quiero/Para completos"
+    },
+    {
+      "regla": "NX-003",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin épica referenciada con ID EP-NNN"
+    },
+    {
+      "regla": "NX-004",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Prioridad no declarada"
+    },
+    {
+      "regla": "NX-005",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BRs sin numerar en el documento fuente (inferidas en normalización: BR1, BR2, BR3)"
+    },
+    {
+      "regla": "NX-006",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Cero escenarios Gherkin documentados"
+    },
+    {
+      "regla": "NX-007",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin precondiciones declaradas"
+    },
+    {
+      "regla": "NX-008",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin dependencias declaradas (ni 'Ninguna' explícito)"
+    },
+    {
+      "regla": "NX-009",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin estimaciones VCR"
+    },
+    {
+      "regla": "NX-010",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin sección Dentro del Alcance"
+    },
+    {
+      "regla": "NX-011",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin sección Fuera del Alcance"
+    },
+    {
+      "regla": "NX-012",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Usuarios/Roles no identificados"
+    },
+    {
+      "regla": "NX-013",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin referencias documentales"
+    },
+    {
+      "regla": "NX-020",
+      "veredicto": "CUMPLE",
+      "evidencia": "Las BR y descripción no contienen términos no verificables como 'rápido', 'seguro', 'fácil', 'adecuado', 'amigable', 'eficiente'. Las expresiones utilizadas son concretas: 'valida usuario y contraseña', 'permite el acceso', 'muestra un mensaje de error', 'muestra una página de bienvenida'."
+    },
+    {
+      "regla": "NX-021",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR1: 'El sistema valida usuario y contraseña y permite el acceso si son correctos' — no especifica qué significa 'correctos' (¿existe en base de datos?, ¿coinciden hash?, ¿están activos?). BR2: 'mensaje de error' sin especificar contenido concreto. BR3: 'página de bienvenida' sin especificar qué elementos debe contener para considerarse válida.",
+      "recomendacion": "BR1: Especificar criterios de validación (ej. 'usuario existe en tabla users con estado=activo AND hash de contraseña coincide con bcrypt stored_hash'). BR2: Definir texto exacto del mensaje (ej. 'Usuario o contraseña incorrectos'). BR3: Listar elementos verificables de la página de bienvenida (ej. 'muestra nombre de usuario, timestamp de acceso y botón Cerrar Sesión')."
+    },
+    {
+      "regla": "NX-022",
+      "veredicto": "CUMPLE",
+      "evidencia": "No se detectan contradicciones entre BR1 ('permite el acceso si son correctos'), BR2 ('muestra mensaje de error' si incorrectos) y BR3 (consecuencia de acceso correcto). La secuencia lógica es coherente: validación → éxito o fallo → página de bienvenida o mensaje de error."
+    },
+    {
+      "regla": "NX-023",
+      "veredicto": "CUMPLE",
+      "evidencia": "La HU cubre una única funcionalidad: 'iniciar sesión con mi usuario y contraseña para acceder a mi cuenta'. Las tres BR describen aspectos de esta misma funcionalidad (validación, manejo de error, resultado exitoso), no funcionalidades distintas."
+    },
+    {
+      "regla": "NX-024",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Ninguna BR especifica valores cuantificados. No se definen: tiempo máximo de respuesta de validación, longitud mínima/máxima de contraseña, número de intentos fallidos antes de bloqueo, duración de sesión, tiempo de expiración de token.",
+      "recomendacion": "Agregar BR con límites cuantitativos: 'La validación debe completarse en ≤2 segundos', 'La contraseña debe tener entre 8 y 64 caracteres', 'Después de 5 intentos fallidos en 15 minutos, bloquear cuenta por 30 minutos', 'La sesión expira después de 30 minutos de inactividad'."
+    },
+    {
+      "regla": "NX-025",
+      "veredicto": "CUMPLE",
+      "evidencia": "El vocabulario es consistente: se usa 'usuario' y 'contraseña' en descripción y BR1; 'datos' en BR2 refiere a usuario+contraseña; 'iniciar sesión' y 'acceso' se usan consistentemente. No se detectan sinónimos innecesarios ni cambios de terminología para el mismo concepto."
+    },
+    {
+      "regla": "NX-030",
+      "veredicto": "INCUMPLE",
+      "evidencia": "El campo 'escenarios' está vacío: []. Ninguna de las tres BR (BR1: validación exitosa, BR2: error en datos incorrectos, BR3: página de bienvenida) tiene un escenario Gherkin que la valide positivamente. La nota menciona que los criterios de aceptación 'carecen de estructura Gherkin verificable'.",
+      "recomendacion": "Crear escenarios positivos: Escenario 1 para BR1/BR3: 'DADO un usuario registrado con credenciales válidas CUANDO ingresa usuario=admin y contraseña=Pass123! ENTONCES el sistema muestra página de bienvenida con nombre de usuario y botón Cerrar Sesión'. Escenario 2 para BR2: validar que con credenciales inválidas se muestre el mensaje esperado."
+    },
+    {
+      "regla": "NX-031",
+      "veredicto": "INCUMPLE",
+      "evidencia": "El campo 'escenarios' está vacío: []. No existen escenarios negativos para ninguna BR. BR1 requiere escenario de rechazo (credenciales inválidas), BR2 requiere validar el error, BR3 requiere validar que sin login exitoso no se accede a página de bienvenida.",
+      "recomendacion": "Crear escenarios negativos: 'DADO un usuario no registrado CUANDO ingresa credenciales ENTONCES el acceso es denegado y se muestra mensaje de error', 'DADO usuario válido con contraseña incorrecta CUANDO intenta login ENTONCES se muestra error sin revelar cuál campo es incorrecto', 'DADO credenciales vacías CUANDO se envía formulario ENTONCES se muestra error de validación'."
+    },
+    {
+      "regla": "NX-032",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Aunque no hay valores numéricos explícitos en las BR actuales, la funcionalidad de login implica límites (longitud de contraseña, intentos fallidos) que no están especificados ni tienen escenarios de frontera. El campo 'escenarios' está vacío.",
+      "recomendacion": "Una vez definidos límites cuantitativos (NX-024), agregar escenarios de frontera: contraseña de exactamente 8 caracteres (mínimo), de 64 caracteres (máximo), de 7 caracteres (inválido), de 65 caracteres (inválido); 5º intento fallido (último válido), 6º intento (dispara bloqueo)."
+    },
+    {
+      "regla": "NX-033",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja autenticación ('iniciar sesión con mi usuario y contraseña') y credenciales sensibles, pero el campo 'escenarios' está vacío y no hay BR ni escenarios que aborden seguridad: sin protección contra fuerza bruta, sin mencionar hashing de contraseñas, sin prevención de enumeración de usuarios, sin protección CSRF, sin validación de sesión.",
+      "recomendacion": "Agregar BR de seguridad: 'BR-SEC-1: Las contraseñas se almacenan con bcrypt (OWASP ASVS 2.4.1)', 'BR-SEC-2: Los mensajes de error no revelan si el usuario existe (OWASP A01:2021 Broken Access Control)', 'BR-SEC-3: Después de 5 intentos fallidos en 15 min, aplicar bloqueo temporal (OWASP ASVS 2.2.1)'. Crear escenario: 'DADO 5 intentos fallidos CUANDO se intenta el 6º ENTONCES el sistema bloquea la cuenta y registra el evento'."
+    },
+    {
+      "regla": "NX-034",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2 menciona 'el sistema muestra un mensaje de error' pero no especifica el texto exacto del mensaje. No se define qué debe decir el error para credenciales inválidas, campos vacíos, cuenta bloqueada, etc.",
+      "recomendacion": "Especificar mensajes exactos: 'Mensaje de error para credenciales inválidas: \"Usuario o contraseña incorrectos. Por favor, inténtelo de nuevo.\"', 'Mensaje para cuenta bloqueada: \"Su cuenta ha sido bloqueada temporalmente por múltiples intentos fallidos. Inténtelo de nuevo en 30 minutos.\"', 'Mensaje para campos vacíos: \"Por favor, complete todos los campos.\"'"
+    },
+    {
+      "regla": "NX-035",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU no proporciona ejemplos concretos de datos de prueba ni reglas para derivarlos. No se especifican credenciales válidas de ejemplo (usuario de prueba), formato esperado del usuario (email, alfanumérico), requisitos de contraseña, ejemplos de credenciales inválidas.",
+      "recomendacion": "Agregar sección de datos de prueba: 'Usuario válido de ejemplo: testuser@example.com / Pass123!', 'Formato de usuario: dirección de email válida según RFC 5322', 'Formato de contraseña: 8-64 caracteres, al menos 1 mayúscula, 1 minúscula, 1 dígito, 1 carácter especial', 'Casos inválidos: usuario vacío, contraseña <8 chars, credenciales de usuario inexistente'."
+    },
+    {
+      "regla": "NX-040",
+      "veredicto": "INCUMPLE",
+      "evidencia": "No hay declaración de requisitos no funcionales en ningún campo de la HU. No se especifican: tiempo de respuesta, concurrencia (usuarios simultáneos), disponibilidad, rendimiento del proceso de autenticación.",
+      "recomendacion": "Declarar NFRs: 'NFR-PERF-1: El proceso de validación debe completarse en ≤2 segundos bajo carga normal (100 usuarios concurrentes)', 'NFR-DISP-1: El sistema de autenticación debe tener 99.5% de disponibilidad', 'NFR-CONC-1: Soportar hasta 1000 intentos de login concurrentes sin degradación', o justificar N/A si son definidos a nivel de sistema."
+    },
+    {
+      "regla": "NX-041",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU implica interfaz de usuario (formulario de login con campos de usuario y contraseña, página de bienvenida), pero no hay consideraciones de accesibilidad WCAG 2.2: sin mención de labels asociados a inputs, navegación por teclado, compatibilidad con lectores de pantalla, contraste de colores.",
+      "recomendacion": "Agregar BR de accesibilidad: 'BR-ACC-1: Los campos de usuario y contraseña tienen etiquetas asociadas mediante <label for> (WCAG 2.2 SC 1.3.1)', 'BR-ACC-2: El formulario es completamente navegable por teclado (WCAG 2.2 SC 2.1.1)', 'BR-ACC-3: Los mensajes de error son anunciados por lectores de pantalla mediante role=alert (WCAG 2.2 SC 4.1.3)', 'BR-ACC-4: Contraste mínimo de 4.5:1 entre texto y fondo (WCAG 2.2 SC 1.4.3)'."
+    },
+    {
+      "regla": "NX-042",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja credenciales (usuario y contraseña) que son datos altamente sensibles, pero no existe ninguna BR sobre auditoría, logging o trazabilidad. No se especifica registro de intentos de login (exitosos o fallidos), detección de actividad sospechosa, ni cumplimiento de trazabilidad de accesos.",
+      "recomendacion": "Agregar BR de auditoría: 'BR-AUD-1: Todos los intentos de login (exitosos y fallidos) se registran con timestamp, dirección IP, user-agent y resultado', 'BR-AUD-2: Los logs de autenticación se conservan por 90 días y son inmutables', 'BR-AUD-3: Los logs NO registran contraseñas en texto plano (OWASP Logging Cheat Sheet)', 'BR-AUD-4: Los eventos de bloqueo de cuenta generan alerta de seguridad'."
+    },
+    {
+      "regla": "NX-043",
+      "veredicto": "INCUMPLE",
+      "evidencia": "No hay mención de normativa regulatoria aplicable. Dependiendo del contexto (sector financiero, salud, Europa), podrían aplicar PCI-DSS (si procesa pagos), HIPAA (si es sector salud), GDPR (datos personales de residentes UE), SOC 2, etc. No se declara aplicabilidad ni N/A justificado.",
+      "recomendacion": "Identificar normativa aplicable y agregar declaración: 'NORM-1: Esta funcionalidad procesa datos personales sujetos a GDPR Art. 32 (seguridad del tratamiento)' o 'NORM-2: Cumple PCI-DSS Req. 8.2.3 (autenticación multifactor)' según aplique, o justificar N/A: 'No aplica normativa específica — aplicación interna sin datos regulados ni usuarios externos'."
+    }
+  ],
+  "puntos_obtenidos": 18,
+  "puntos_totales": 93,
+  "rhi": 19.4,
+  "dictamen": "NO_APTO",
+  "criticos_incumplidos": [
+    "NX-001",
+    "NX-005",
+    "NX-006",
+    "NX-021",
+    "NX-030",
+    "NX-031",
+    "NX-033"
+  ],
+  "resumen_por_severidad": {
+    "CRITICO": {
+      "cumple": 2,
+      "incumple": 7,
+      "no_aplica": 0
+    },
+    "ALTO": {
+      "cumple": 2,
+      "incumple": 8,
+      "no_aplica": 0
+    },
+    "MEDIO": {
+      "cumple": 1,
+      "incumple": 7,
+      "no_aplica": 0
+    },
+    "BAJO": {
+      "cumple": 0,
+      "incumple": 2,
+      "no_aplica": 0
+    }
+  }
+}

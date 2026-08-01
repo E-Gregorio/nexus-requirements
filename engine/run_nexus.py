@@ -107,7 +107,7 @@ def ejecutar_pipeline(ruta_hu: Path, out_dir: Path = None, llm=None) -> dict:
     print("[5/6] Renderizando Certificado, HU Ideal y CSVs...")
     _guardar(destino, f"05_CERTIFICADO_{hu_id}.md",
              render_certificado(hu, cert, cob, activos, vcr))
-    _guardar(destino, f"{hu_id}_IDEAL.html", render_hu_ideal(hu, cert, cob))
+    _guardar(destino, f"{hu_id}_IDEAL.html", render_hu_ideal(hu, cert, cob, vcr))
     for nombre, contenido in render_csvs(hu, cert, cob, activos, vcr).items():
         _guardar(destino / "csv", nombre, contenido)
 

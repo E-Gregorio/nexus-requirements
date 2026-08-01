@@ -1,0 +1,15 @@
+PRC_ID,Titulo_PRC,Descripcion,Pasos_Precondicion,Datos_Requeridos,Estado_Sistema,Categoria,Reutilizable,TC_Asociados
+PRC-01,Usuario válido registrado en el sistema,Credenciales de prueba pre-existentes en el SUT,"Verificar que el usuario 'tomsmith' con contraseña 'SuperSecretPassword!' está registrado en https://the-internet.herokuapp.com/login
+Confirmar que el usuario puede autenticarse manualmente antes de ejecutar la suite","usuario=tomsmith, contraseña=SuperSecretPassword!","SUT desplegado y accesible, usuario activo sin bloqueos previos",Datos de Prueba,Si,"TC-01, TC-05"
+PRC-02,Sesión sin autenticación previa,Navegador limpio sin cookies de sesión activas,"Limpiar todas las cookies del dominio herokuapp.com antes de cada caso de prueba
+Verificar que no existe cookie de sesión activa en DevTools > Application > Cookies",Ninguno (estado limpio),"Navegador sin cookies de autenticación, localStorage vacío",Estado de Sesión,Si,"TC-01, TC-03, TC-04, TC-05, TC-06, TC-07, TC-08, TC-09, TC-11, TC-13"
+PRC-03,Sesión autenticada activa en /secure,Usuario previamente logueado con sesión válida,"Ejecutar login con usuario 'tomsmith' y contraseña 'SuperSecretPassword!'
+Verificar redirección exitosa a /secure y presencia de cookie de sesión
+Confirmar que el mensaje 'You logged into a secure area!' es visible","usuario=tomsmith, contraseña=SuperSecretPassword!, cookie de sesión activa","Usuario autenticado en /secure, sesión válida no expirada",Estado de Sesión,Si,TC-02
+PRC-04,Múltiples intentos fallidos de login registrados,Cuenta con historial de intentos fallidos recientes para testing de bloqueo,"Ejecutar 5 intentos de login con usuario 'tomsmith' y contraseña incorrecta 'WrongPass123'
+Verificar que cada intento devuelve mensaje 'Your password is invalid!' sin bloquear
+Registrar timestamp del quinto intento para validar período de bloqueo [PROPUESTO: 15 min]","usuario=tomsmith, contraseña_incorrecta=WrongPass123, contador_intentos=5","Cuenta con 5 intentos fallidos consecutivos registrados, próximo intento debe bloquear",Datos de Prueba,No,TC-10
+PRC-05,Sesión con inactividad prolongada,Sesión autenticada sin actividad durante período de expiración,"Ejecutar login con usuario 'tomsmith' y contraseña 'SuperSecretPassword!'
+Verificar acceso exitoso a /secure
+Esperar período de inactividad [PROPUESTO: 30 minutos] sin interacción con la aplicación
+Registrar timestamp de última acción para validar expiración","usuario=tomsmith, timestamp_ultima_accion, tiempo_inactividad=30min","Sesión autenticada expirada por timeout, cookie de sesión inválida",Estado de Sesión,No,TC-12

@@ -1,0 +1,741 @@
+{
+  "hu_id": "HU-001",
+  "suites": [
+    {
+      "ts_id": "TS-01",
+      "nombre": "Suite de Flujos Positivos - Autenticación",
+      "descripcion": "Valida flujos exitosos de login, visualización de bienvenida y cierre de sesión",
+      "tecnica_istqb": "Partición de Equivalencia, Análisis Causa-Efecto",
+      "framework_sugerido": "Playwright",
+      "prioridad": "Alta",
+      "categoria": "Funcional"
+    },
+    {
+      "ts_id": "TS-02",
+      "nombre": "Suite de Flujos Negativos - Validaciones",
+      "descripcion": "Valida rechazos, mensajes de error, validaciones de campos y límites de seguridad",
+      "tecnica_istqb": "Valores Límite, Partición de Equivalencia",
+      "framework_sugerido": "Playwright",
+      "prioridad": "Alta",
+      "categoria": "Funcional - Negativa"
+    },
+    {
+      "ts_id": "TS-03",
+      "nombre": "Suite de Seguridad - OWASP",
+      "descripcion": "Valida controles anti-enumeración, anti-fuerza-bruta, auditoría, criptografía y gestión de tokens",
+      "tecnica_istqb": "Análisis de Riesgos OWASP",
+      "framework_sugerido": "Playwright + Newman + ZAP",
+      "prioridad": "Crítica",
+      "categoria": "Seguridad - OWASP"
+    }
+  ],
+  "precondiciones": [
+    {
+      "prc_id": "PRC-01",
+      "titulo": "Usuario válido registrado en BD",
+      "descripcion": "Usuario 'juan.perez' con contraseña hasheada 'Pass123!' existe en tabla usuarios",
+      "pasos_setup": [
+        "Ejecutar script SQL: INSERT INTO usuarios (username, password_hash, nombre_completo, activo) VALUES ('juan.perez', '$2b$10$hashedPass123', 'Juan Pérez', true)",
+        "Verificar registro en BD con query: SELECT * FROM usuarios WHERE username='juan.perez'"
+      ],
+      "datos_requeridos": "username='juan.perez', password='Pass123!' (texto plano para pruebas), nombre='Juan Pérez', activo=true",
+      "estado_sistema": "BD usuarios contiene registro activo; tabla sesiones_activas vacía para ese usuario",
+      "categoria": "Datos de Prueba",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "PRC-02",
+      "titulo": "Usuario con 2 intentos fallidos previos",
+      "descripcion": "Usuario con contador de intentos=2 en ventana de 15 min para validar frontera de bloqueo",
+      "pasos_setup": [
+        "Crear usuario 'maria.lopez' usando PRC_1",
+        "Ejecutar 2 intentos de login fallidos con credenciales incorrectas desde IP 192.168.1.100",
+        "Verificar tabla intentos_login: contador=2, ip='192.168.1.100', timestamp dentro de últimos 15 min"
+      ],
+      "datos_requeridos": "username='maria.lopez', password='Pass456!', IP_origen='192.168.1.100', intentos_previos=2, timestamp_ultimo_intento=now()",
+      "estado_sistema": "Contador de intentos fallidos = 2; ventana temporal activa; cuenta NO bloqueada",
+      "categoria": "Datos de Prueba",
+      "reutilizable": false
+    },
+    {
+      "prc_id": "PRC-03",
+      "titulo": "Sesión activa con token válido",
+      "descripcion": "Usuario autenticado con token UUID v4 activo en tabla sesiones_activas",
+      "pasos_setup": [
+        "Ejecutar login exitoso para usuario 'juan.perez' (PRC_1)",
+        "Capturar token generado de cookie o response header",
+        "Verificar en BD: SELECT * FROM sesiones_activas WHERE usuario='juan.perez' AND token_valido=true"
+      ],
+      "datos_requeridos": "usuario='juan.perez', token=UUID v4 generado, timestamp_creacion=now(), timestamp_expiracion=now()+30min",
+      "estado_sistema": "Token activo en sesiones_activas; cookie de sesión presente en navegador; usuario en página de bienvenida",
+      "categoria": "Estado de Sistema",
+      "reutilizable": true
+    },
+    {
+      "prc_id": "PRC-04",
+      "titulo": "Token de sesión expirado (30 min inactividad)",
+      "descripcion": "Token generado hace exactamente 30 min sin actividad del usuario",
+      "pasos_setup": [
+        "Crear sesión para usuario 'pedro.garcia' (similar a PRC_3)",
+        "Ejecutar UPDATE sesiones_activas SET timestamp_ultima_actividad = now() - interval '30 minutes' WHERE usuario='pedro.garcia'",
+        "Verificar diferencia temporal: SELECT EXTRACT(EPOCH FROM (now() - timestamp_ultima_actividad))/60 AS minutos FROM sesiones_activas WHERE usuario='pedro.garcia'"
+      ],
+      "datos_requeridos": "usuario='pedro.garcia', token=UUID v4, timestamp_ultima_actividad=now()-30min, estado_token='pendiente_validacion'",
+      "estado_sistema": "Token técnicamente presente en BD pero fuera de ventana de validez (30 min); usuario inactivo",
+      "categoria": "Datos de Prueba",
+      "reutilizable": false
+    },
+    {
+      "prc_id": "PRC-05",
+      "titulo": "Log de auditoría vacío y accesible",
+      "descripcion": "Tabla audit_log limpia y lista para registrar eventos de autenticación",
+      "pasos_setup": [
+        "Limpiar tabla audit_log: DELETE FROM audit_log WHERE evento_tipo='LOGIN' AND timestamp > now() - interval '1 hour'",
+        "Verificar permisos de escritura: INSERT INTO audit_log (evento_tipo, timestamp) VALUES ('TEST', now())",
+        "Eliminar registro de prueba: DELETE FROM audit_log WHERE evento_tipo='TEST'"
+      ],
+      "datos_requeridos": "tabla audit_log con campos: id, timestamp, usuario, ip_origen, evento_tipo, resultado, detalles",
+      "estado_sistema": "Tabla audit_log operativa sin registros del último ciclo de pruebas; índices creados en campos timestamp y usuario",
+      "categoria": "Estado de Sistema",
+      "reutilizable": true
+    }
+  ],
+  "test_cases": [
+    {
+      "tc_id": "TC-01",
+      "ts_id": "TS-01",
+      "titulo": "Validar login exitoso con credenciales válidas",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E1",
+      "brs_cubiertas": [
+        "BR1",
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "PRC-01"
+      ],
+      "tecnica": "Partición de Equivalencia (clase válida)",
+      "origen": "gap_sugerido",
+      "es_smoke": true,
+      "prioridad": "Crítica",
+      "complejidad": "Baja",
+      "tiempo_estimado": "15 min",
+      "datos_entrada": "username='juan.perez', password='Pass123!'",
+      "resultado_esperado": "Autenticación exitosa, token UUID v4 generado, redirección a /bienvenida con mensaje 'Bienvenido, Juan Pérez' y botón 'Cerrar sesión' visible",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Navegar a página de login e ingresar credenciales válidas",
+          "datos": "URL='/login', campo_usuario='juan.perez', campo_password='Pass123!', botón='Iniciar sesión'",
+          "resultado_esperado": "Sistema redirige a /bienvenida; mensaje 'Bienvenido, Juan Pérez'; botón 'Cerrar sesión' en esquina superior derecha; cookie de sesión presente con token UUID v4"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 1,
+        "probabilidad": 3,
+        "impacto": 3,
+        "justificacion": "Valor=3 (flujo crítico de negocio); Costo=1 (prueba simple de 1 paso); Probabilidad=3 (alta probabilidad de regresión); Impacto=3 (fallo bloquea acceso total al sistema)"
+      }
+    },
+    {
+      "tc_id": "TC-02",
+      "ts_id": "TS-01",
+      "titulo": "Validar visualización de página de bienvenida con elementos post-login",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E5",
+      "brs_cubiertas": [
+        "BR3"
+      ],
+      "prcs_asociadas": [
+        "PRC-03"
+      ],
+      "tecnica": "Partición de Equivalencia",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "sesión_activa=true, usuario='juan.perez', token=UUID v4 válido",
+      "resultado_esperado": "Mensaje 'Bienvenido, Juan Pérez', botón 'Cerrar sesión' en esquina superior derecha, cookie de sesión activa",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Cargar página /bienvenida con sesión activa",
+          "datos": "URL='/bienvenida', cookie_sesion=token_UUID_v4",
+          "resultado_esperado": "Mensaje 'Bienvenido, Juan Pérez' visible; botón 'Cerrar sesión' en posición top-right con clases CSS específicas; token presente en cookies del navegador; timestamp_ultima_actividad actualizado en BD"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 2,
+        "costo": 1,
+        "probabilidad": 2,
+        "impacto": 2,
+        "justificacion": "Valor=2 (confirmación visual importante); Costo=1 (prueba simple); Probabilidad=2 (cambios en UI moderados); Impacto=2 (fallo afecta UX pero no seguridad)"
+      }
+    },
+    {
+      "tc_id": "TC-03",
+      "ts_id": "TS-01",
+      "titulo": "Validar cierre de sesión con invalidación de token",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E6",
+      "brs_cubiertas": [
+        "BR3",
+        "BR7"
+      ],
+      "prcs_asociadas": [
+        "PRC-03"
+      ],
+      "tecnica": "Análisis Causa-Efecto",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "18 min",
+      "datos_entrada": "sesión_activa=true, usuario='juan.perez', botón='Cerrar sesión'",
+      "resultado_esperado": "Token invalidado en BD y cookies eliminadas, redirección a /login",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Hacer clic en botón Cerrar sesión",
+          "datos": "URL_actual='/bienvenida', botón='Cerrar sesión'",
+          "resultado_esperado": "Sistema ejecuta logout; token marcado como inválido en tabla sesiones_activas; cookie de sesión eliminada del navegador"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar redirección y estado del sistema",
+          "datos": "URL_esperada='/login'",
+          "resultado_esperado": "Redirección exitosa a /login; mensaje 'Sesión cerrada correctamente'; consulta BD confirma token_valido=false para ese usuario"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (flujo crítico de seguridad); Costo=2 (requiere validación en BD y navegador); Probabilidad=2 (cambios en gestión de sesiones); Impacto=3 (fallo permite sesiones huérfanas)"
+      }
+    },
+    {
+      "tc_id": "TC-04",
+      "ts_id": "TS-02",
+      "titulo": "Validar rechazo con contraseña incorrecta",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E2",
+      "brs_cubiertas": [
+        "BR1",
+        "BR2"
+      ],
+      "prcs_asociadas": [
+        "PRC-01"
+      ],
+      "tecnica": "Partición de Equivalencia (clase inválida)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Baja",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "username='juan.perez' (válido), password='PassIncorrecta' (inválido)",
+      "resultado_esperado": "Rechazo de acceso, mensaje 'Credenciales inválidas', permanencia en /login sin token generado",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar usuario válido con contraseña incorrecta y hacer clic en Iniciar sesión",
+          "datos": "campo_usuario='juan.perez', campo_password='PassIncorrecta'",
+          "resultado_esperado": "Mensaje de error 'Credenciales inválidas' visible; URL permanece en /login; campo contraseña limpiado; no se genera token de sesión"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 2,
+        "costo": 1,
+        "probabilidad": 2,
+        "impacto": 2,
+        "justificacion": "Valor=2 (validación de seguridad importante pero no crítica); Costo=1 (prueba simple); Probabilidad=2 (cambios en lógica de validación moderadamente frecuentes); Impacto=2 (fallo permite acceso no autorizado)"
+      }
+    },
+    {
+      "tc_id": "TC-05",
+      "ts_id": "TS-02",
+      "titulo": "Validar rechazo con campos vacíos",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E4",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [],
+      "tecnica": "Valores Límite (valor vacío)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Media",
+      "complejidad": "Baja",
+      "tiempo_estimado": "10 min",
+      "datos_entrada": "username='', password=''",
+      "resultado_esperado": "Mensaje 'Por favor complete todos los campos' SIN consultar BD",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Dejar campos usuario y contraseña vacíos y hacer clic en Iniciar sesión",
+          "datos": "campo_usuario='', campo_password=''",
+          "resultado_esperado": "Mensaje 'Por favor complete todos los campos'; validación del lado cliente (sin petición al servidor); campos resaltados en rojo; foco en campo usuario"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 1,
+        "costo": 1,
+        "probabilidad": 1,
+        "impacto": 2,
+        "justificacion": "Valor=1 (validación básica de UX); Costo=1 (prueba simple); Probabilidad=1 (validación estable); Impacto=2 (fallo permite peticiones innecesarias al servidor)"
+      }
+    },
+    {
+      "tc_id": "TC-06",
+      "ts_id": "TS-02",
+      "titulo": "Validar que intento 2 de 3 NO bloquea cuenta (valor frontera -1)",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E8",
+      "brs_cubiertas": [
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "PRC-02"
+      ],
+      "tecnica": "Valores Límite (límite - 1)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Media",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "username='maria.lopez', intentos_previos=2, password_incorrecta='Intento2'",
+      "resultado_esperado": "Mensaje 'Credenciales inválidas', cuenta NO bloqueada, tercer intento permitido",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar 2 intentos fallidos (ya configurados en PRC_2)",
+          "datos": "usuario='maria.lopez' con contador=2 en BD",
+          "resultado_esperado": "Contador de intentos = 2; bloqueado=false en tabla usuarios"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar que NO aparece mensaje de bloqueo y se permite nuevo intento",
+          "datos": "Consulta BD: SELECT bloqueado FROM usuarios WHERE username='maria.lopez'",
+          "resultado_esperado": "bloqueado=false; campo de contraseña habilitado; botón 'Iniciar sesión' habilitado; mensaje exacto 'Credenciales inválidas' (no menciona bloqueo)"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 2,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 2,
+        "justificacion": "Valor=2 (validación de límite importante); Costo=2 (requiere setup de estado previo); Probabilidad=2 (cambios en contador de intentos); Impacto=2 (fallo bloquea prematuramente)"
+      }
+    },
+    {
+      "tc_id": "TC-07",
+      "ts_id": "TS-02",
+      "titulo": "Validar expiración de token después de 30 minutos de inactividad (valor frontera exacto)",
+      "tipo_prueba": "Funcional",
+      "escenario_id": "E14",
+      "brs_cubiertas": [
+        "BR7"
+      ],
+      "prcs_asociadas": [
+        "PRC-04"
+      ],
+      "tecnica": "Valores Límite (límite exacto)",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Alta",
+      "complejidad": "Alta",
+      "tiempo_estimado": "35 min",
+      "datos_entrada": "usuario='pedro.garcia', timestamp_ultima_actividad=now()-30min exactos, URL='/pagina-protegida'",
+      "resultado_esperado": "Token detectado como expirado, invalidación automática, redirección a /login, mensaje 'Su sesión ha expirado. Por favor inicie sesión nuevamente'",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Configurar token con timestamp_ultima_actividad hace exactamente 30 min (PRC_4)",
+          "datos": "UPDATE sesiones_activas SET timestamp_ultima_actividad = now() - interval '30 minutes' WHERE usuario='pedro.garcia'",
+          "resultado_esperado": "Timestamp actualizado correctamente; diferencia exacta = 30:00 minutos"
+        },
+        {
+          "numero": 2,
+          "accion": "Intentar acceder a página protegida con token expirado",
+          "datos": "GET /pagina-protegida con cookie de sesión del usuario 'pedro.garcia'",
+          "resultado_esperado": "Sistema detecta expiración (timestamp_ultima_actividad + 30min < now()); token marcado como inválido en BD; redirección a /login; cookie eliminada del navegador"
+        },
+        {
+          "numero": 3,
+          "accion": "Verificar mensaje de expiración y estado en BD",
+          "datos": "Inspeccionar mensaje en /login; consultar SELECT token_valido FROM sesiones_activas WHERE usuario='pedro.garcia'",
+          "resultado_esperado": "Mensaje exacto 'Su sesión ha expirado. Por favor inicie sesión nuevamente'; token_valido=false en BD; registro en audit_log con evento='SESION_EXPIRADA'"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 3,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (gestión de sesión crítica); Costo=3 (requiere manipulación temporal y espera/simulación de 30 min); Probabilidad=2 (cambios en lógica de expiración); Impacto=3 (fallo permite sesiones perpetuas)"
+      }
+    },
+    {
+      "tc_id": "TC-08",
+      "ts_id": "TS-03",
+      "titulo": "Validar mensaje genérico con usuario inexistente (anti-enumeración OWASP A01)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E3",
+      "brs_cubiertas": [
+        "BR2"
+      ],
+      "prcs_asociadas": [],
+      "tecnica": "Análisis de Riesgos OWASP A01:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Baja",
+      "tiempo_estimado": "12 min",
+      "datos_entrada": "username='usuario.falso' (no existe en BD), password='cualquier_password'",
+      "resultado_esperado": "Mensaje genérico 'Credenciales inválidas' SIN revelar que el usuario no existe",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ingresar usuario inexistente con cualquier contraseña",
+          "datos": "campo_usuario='usuario.falso', campo_password='cualquier_password'",
+          "resultado_esperado": "Mensaje exacto 'Credenciales inválidas' (idéntico al de contraseña incorrecta); NO aparece 'Usuario no encontrado' ni variante; tiempo de respuesta similar al de usuario válido con contraseña incorrecta (±200ms)"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 1,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (control de seguridad crítico OWASP); Costo=1 (prueba simple); Probabilidad=2 (cambios en mensajes de error); Impacto=3 (fallo facilita enumeración de usuarios válidos)"
+      }
+    },
+    {
+      "tc_id": "TC-09",
+      "ts_id": "TS-03",
+      "titulo": "Validar bloqueo temporal después de 3 intentos fallidos consecutivos (OWASP A07)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E7",
+      "brs_cubiertas": [
+        "BR4"
+      ],
+      "prcs_asociadas": [
+        "PRC-01",
+        "PRC-05"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A07:2021, Tabla de Decisión",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "username='juan.perez', password_incorrecta='Intento1', IP='192.168.1.100', intentos=3",
+      "resultado_esperado": "Cuenta bloqueada por 30 min, mensaje específico, registro en audit_log con IP y timestamp",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar 3 intentos de login fallidos consecutivos desde misma IP",
+          "datos": "username='juan.perez', password='Intento1', 'Intento2', 'Intento3'; IP_origen='192.168.1.100'; intervalo entre intentos < 15 min",
+          "resultado_esperado": "Intentos 1 y 2 muestran 'Credenciales inválidas'; intento 3 muestra 'Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente nuevamente en 30 minutos'"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar bloqueo en BD y log de auditoría",
+          "datos": "Consulta BD: SELECT bloqueado, timestamp_bloqueo FROM usuarios WHERE username='juan.perez'",
+          "resultado_esperado": "bloqueado=true; timestamp_bloqueo=now(); registro en audit_log con evento_tipo='CUENTA_BLOQUEADA', ip_origen='192.168.1.100', detalles='3 intentos fallidos en 15min'"
+        },
+        {
+          "numero": 3,
+          "accion": "Intentar login con credenciales VÁLIDAS durante bloqueo",
+          "datos": "username='juan.perez', password='Pass123!' (correcta), timestamp_actual < timestamp_bloqueo + 30min",
+          "resultado_esperado": "Acceso denegado; mensaje 'Cuenta bloqueada temporalmente...'; login rechazado incluso con contraseña correcta"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 3,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (control anti-fuerza-bruta crítico OWASP); Costo=3 (prueba compleja con 3 pasos y validaciones de BD); Probabilidad=2 (cambios en lógica de bloqueo); Impacto=3 (fallo permite ataques de fuerza bruta)"
+      }
+    },
+    {
+      "tc_id": "TC-10",
+      "ts_id": "TS-03",
+      "titulo": "Validar registro en log de auditoría de intento exitoso (OWASP A09)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E9",
+      "brs_cubiertas": [
+        "BR5"
+      ],
+      "prcs_asociadas": [
+        "PRC-01",
+        "PRC-05"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A09:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Media",
+      "tiempo_estimado": "18 min",
+      "datos_entrada": "username='juan.perez', password='Pass123!', IP_origen='192.168.1.100'",
+      "resultado_esperado": "Registro en audit_log con timestamp, usuario, IP, resultado=EXITOSO, token_sesion",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar login exitoso y consultar tabla audit_log",
+          "datos": "username='juan.perez', password='Pass123!', IP='192.168.1.100'",
+          "resultado_esperado": "Nueva fila en audit_log con: usuario='juan.perez', ip_origen='192.168.1.100', resultado='EXITOSO', token_sesion=[UUID generado], timestamp=now() (diferencia < 2 segundos)"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar formato y campos obligatorios del registro",
+          "datos": "SELECT * FROM audit_log WHERE usuario='juan.perez' ORDER BY timestamp DESC LIMIT 1",
+          "resultado_esperado": "Campos NOT NULL: id, timestamp, usuario, ip_origen, resultado, token_sesion; timestamp en formato ISO 8601; token_sesion coincide con cookie de sesión del navegador"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (auditoría crítica OWASP A09); Costo=2 (requiere consultas de BD); Probabilidad=2 (cambios en estructura de log); Impacto=3 (fallo impide trazabilidad de accesos)"
+      }
+    },
+    {
+      "tc_id": "TC-11",
+      "ts_id": "TS-03",
+      "titulo": "Validar registro en log de auditoría de intento fallido (OWASP A09)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E10",
+      "brs_cubiertas": [
+        "BR5"
+      ],
+      "prcs_asociadas": [
+        "PRC-01",
+        "PRC-05"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A09:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Media",
+      "tiempo_estimado": "18 min",
+      "datos_entrada": "username='juan.perez', password='PassIncorrecta', IP_origen='192.168.1.100'",
+      "resultado_esperado": "Registro en audit_log con timestamp, usuario_intentado, IP, resultado=FALLIDO, razon=credenciales_invalidas",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar login fallido y consultar tabla audit_log",
+          "datos": "username='juan.perez', password='PassIncorrecta', IP='192.168.1.100'",
+          "resultado_esperado": "Nueva fila en audit_log con: usuario_intentado='juan.perez', ip_origen='192.168.1.100', resultado='FALLIDO', razon='credenciales_invalidas', timestamp=now() (diferencia < 2 segundos)"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar que NO se registra la contraseña intentada",
+          "datos": "SELECT detalles FROM audit_log WHERE usuario_intentado='juan.perez' AND resultado='FALLIDO' ORDER BY timestamp DESC LIMIT 1",
+          "resultado_esperado": "Campo detalles NO contiene 'PassIncorrecta' ni variante; solo información segura (razon='credenciales_invalidas'); contraseña nunca almacenada en texto plano en logs"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (auditoría de fallos crítica OWASP A09); Costo=2 (requiere consultas de BD); Probabilidad=2 (cambios en lógica de log); Impacto=3 (fallo impide detección de ataques)"
+      }
+    },
+    {
+      "tc_id": "TC-12",
+      "ts_id": "TS-03",
+      "titulo": "Validar transmisión de contraseña mediante HTTPS con TLS 1.2+ (OWASP A02/A04)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E11",
+      "brs_cubiertas": [
+        "BR6"
+      ],
+      "prcs_asociadas": [
+        "PRC-01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A02:2021, A04:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "25 min",
+      "datos_entrada": "URL='https://sistema.ejemplo.com/login', username='juan.perez', password='Pass123!'",
+      "resultado_esperado": "Protocolo HTTPS activo, TLS 1.2+, certificado SSL/TLS válido, contraseña NO visible en cuerpo de petición sin cifrar",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Inspeccionar protocolo y certificado SSL/TLS en DevTools",
+          "datos": "URL='https://sistema.ejemplo.com/login', abrir Network tab en DevTools",
+          "resultado_esperado": "URL usa protocolo HTTPS (candado visible en navegador); certificado válido sin advertencias; versión TLS 1.2 o superior; cifrado fuerte (ej. AES-256-GCM)"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar que contraseña NO se envía en texto plano",
+          "datos": "Capturar petición POST /login en Network tab; examinar Request Payload",
+          "resultado_esperado": "Contraseña NO aparece en texto plano en Headers ni Payload visible; datos cifrados por TLS; herramientas de red muestran contenido encriptado"
+        },
+        {
+          "numero": 3,
+          "accion": "Usar ZAP/Burp para verificar cifrado en tránsito",
+          "datos": "Proxy HTTPS a través de ZAP; intentar interceptar credenciales",
+          "resultado_esperado": "ZAP intercepta tráfico cifrado; sin configurar certificado propio, ZAP NO puede leer contraseña en texto plano; TLS funciona correctamente"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 3,
+        "probabilidad": 1,
+        "impacto": 3,
+        "justificacion": "Valor=3 (protección criptográfica crítica OWASP); Costo=3 (requiere herramientas de seguridad y análisis de red); Probabilidad=1 (configuración TLS estable); Impacto=3 (fallo expone credenciales en tránsito)"
+      }
+    },
+    {
+      "tc_id": "TC-13",
+      "ts_id": "TS-03",
+      "titulo": "Validar almacenamiento de contraseña con hash criptográfico bcrypt/Argon2 (OWASP A02/A04)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E12",
+      "brs_cubiertas": [
+        "BR6"
+      ],
+      "prcs_asociadas": [],
+      "tecnica": "Análisis de Riesgos OWASP A02:2021, A04:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Alta",
+      "tiempo_estimado": "30 min",
+      "datos_entrada": "username='nuevo.usuario', password='Pass123!' (registro de nuevo usuario)",
+      "resultado_esperado": "Password almacenada como hash bcrypt/Argon2 con salt único, NO reversible a texto plano",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Registrar nuevo usuario y consultar campo password_hash en BD",
+          "datos": "POST /registro con username='nuevo.usuario', password='Pass123!'; luego SELECT password_hash FROM usuarios WHERE username='nuevo.usuario'",
+          "resultado_esperado": "Campo password_hash contiene cadena hash (ej. '$2b$10$...' para bcrypt); longitud ≥ 60 caracteres; formato reconocible de bcrypt/scrypt/Argon2; NO contiene 'Pass123!' en texto plano"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar unicidad del salt",
+          "datos": "Registrar segundo usuario con misma contraseña 'Pass123!'; comparar hashes de ambos usuarios",
+          "resultado_esperado": "Hashes diferentes debido a salts únicos; consulta: SELECT password_hash FROM usuarios WHERE username IN ('nuevo.usuario', 'nuevo.usuario2') muestra valores distintos"
+        },
+        {
+          "numero": 3,
+          "accion": "Intentar revertir el hash (validación de no reversibilidad)",
+          "datos": "Copiar hash de BD; usar herramientas online de reversión (ej. CrackStation con hash conocido)",
+          "resultado_esperado": "Hash NO puede revertirse a 'Pass123!' con métodos comunes; algoritmo bcrypt/Argon2 resistente a rainbow tables debido al salt único"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 3,
+        "probabilidad": 1,
+        "impacto": 3,
+        "justificacion": "Valor=3 (protección de credenciales crítica OWASP); Costo=3 (requiere análisis de BD y herramientas de hash); Probabilidad=1 (algoritmo de hash estable); Impacto=3 (fallo expone todas las contraseñas en caso de brecha de BD)"
+      }
+    },
+    {
+      "tc_id": "TC-14",
+      "ts_id": "TS-03",
+      "titulo": "Validar generación de token de sesión UUID v4 único y aleatorio (OWASP A07)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E13",
+      "brs_cubiertas": [
+        "BR7"
+      ],
+      "prcs_asociadas": [
+        "PRC-01"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A07:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Media",
+      "tiempo_estimado": "22 min",
+      "datos_entrada": "username='juan.perez', password='Pass123!' (login exitoso)",
+      "resultado_esperado": "Token UUID v4 generado, longitud ≥ 128 bits, NO predecible, único en tabla sesiones_activas",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Ejecutar login exitoso y capturar token generado",
+          "datos": "username='juan.perez', password='Pass123!'; capturar cookie de sesión o header Authorization",
+          "resultado_esperado": "Token con formato UUID v4 (ej. '550e8400-e29b-41d4-a716-446655440000'); longitud 36 caracteres (32 hex + 4 guiones); versión UUID = 4 (posición 14 = '4')"
+        },
+        {
+          "numero": 2,
+          "accion": "Verificar unicidad y NO predictibilidad",
+          "datos": "Ejecutar 10 logins consecutivos; capturar 10 tokens; analizar secuencia",
+          "resultado_esperado": "Cada token es único (sin repeticiones); tokens NO son secuenciales ni predecibles (diferencia bit a bit aleatoria); consulta BD: SELECT COUNT(DISTINCT token) FROM sesiones_activas WHERE usuario='juan.perez' retorna 10"
+        },
+        {
+          "numero": 3,
+          "accion": "Verificar asociación token-usuario en tabla sesiones_activas",
+          "datos": "SELECT usuario, token FROM sesiones_activas WHERE token='[token_capturado]'",
+          "resultado_esperado": "Registro encontrado con usuario='juan.perez'; token asociado correctamente; timestamp_creacion reciente; token_valido=true"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (generación de token crítica OWASP A07); Costo=2 (requiere múltiples logins y análisis de BD); Probabilidad=2 (cambios en librería de UUID); Impacto=3 (fallo permite predicción de tokens y secuestro de sesión)"
+      }
+    },
+    {
+      "tc_id": "TC-15",
+      "ts_id": "TS-03",
+      "titulo": "Validar que token invalidado NO puede reutilizarse (OWASP A07)",
+      "tipo_prueba": "Seguridad - OWASP",
+      "escenario_id": "E15",
+      "brs_cubiertas": [
+        "BR7"
+      ],
+      "prcs_asociadas": [
+        "PRC-03"
+      ],
+      "tecnica": "Análisis de Riesgos OWASP A07:2021",
+      "origen": "gap_sugerido",
+      "es_smoke": false,
+      "prioridad": "Crítica",
+      "complejidad": "Media",
+      "tiempo_estimado": "20 min",
+      "datos_entrada": "usuario='juan.perez', token_antiguo='abc123-uuid-token' (ya cerrado sesión), URL='/pagina-protegida'",
+      "resultado_esperado": "Token rechazado como inválido, redirección a /login, registro en audit_log de intento de reutilización",
+      "pasos": [
+        {
+          "numero": 1,
+          "accion": "Cerrar sesión normalmente y capturar token antes de invalidación",
+          "datos": "Ejecutar logout; capturar token 'abc123-uuid-token' antes de que se elimine; verificar en BD: token_valido=false",
+          "resultado_esperado": "Token marcado como inválido (token_valido=false) en tabla sesiones_activas; cookie eliminada del navegador del usuario legítimo"
+        },
+        {
+          "numero": 2,
+          "accion": "Intentar acceder a página protegida reutilizando token invalidado",
+          "datos": "Enviar petición GET /pagina-protegida con cookie de sesión='abc123-uuid-token' (manualmente configurada)",
+          "resultado_esperado": "Sistema rechaza token; código HTTP 401 Unauthorized o redirección a /login; mensaje 'Sesión inválida. Por favor inicie sesión nuevamente'"
+        },
+        {
+          "numero": 3,
+          "accion": "Verificar registro de intento de reutilización en audit_log",
+          "datos": "SELECT * FROM audit_log WHERE evento_tipo='REUTILIZACION_TOKEN' AND token='abc123-uuid-token' ORDER BY timestamp DESC LIMIT 1",
+          "resultado_esperado": "Registro encontrado con timestamp reciente; detalles incluyen IP de origen del intento; severidad='ALTA'; evento clasificado como potencial ataque de secuestro de sesión"
+        }
+      ],
+      "vcr_propuesto": {
+        "valor": 3,
+        "costo": 2,
+        "probabilidad": 2,
+        "impacto": 3,
+        "justificacion": "Valor=3 (prevención de secuestro de sesión crítica OWASP A07); Costo=2 (requiere manipulación manual de cookies y BD); Probabilidad=2 (cambios en lógica de invalidación); Impacto=3 (fallo permite reutilización de tokens robados o cerrados)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+EPIC_ID,ID_HU,Nombre_HU,Epica,Estado,Prioridad,Descripcion_Como,Descripcion_Quiero,Descripcion_Para,Usuarios_Roles,Reglas_Negocio,Precondiciones_HU,Dependencias,VCR_Valor,VCR_Costo,VCR_Riesgo,VCR_Total,Requiere_Regresion,Es_Deuda_Tecnica,Cobertura_Inicial,Cobertura_Proyectada,Dictamen_NX,RHI,Criterios_Aceptacion,Dentro_Alcance,Fuera_Alcance,Referencias,Notas
+EP-001,HU-002,Autenticación de Usuario en Formulario de Login,EP-001: Autenticación y Gestión de Acceso,Analisis Estatico Completado,Alta,usuario registrado del sistema,iniciar sesión ingresando mi usuario y contraseña,acceder de forma segura a las funcionalidades protegidas de la aplicación,"Usuario registrado (rol estándar)
+Administrador del sistema (mismo formulario, mismas reglas de validación)","BR1: El sistema debe validar que los campos usuario y contraseña no estén vacíos (validación client-side) y, si son válidos, compararlos contra las credenciales almacenadas antes de conceder acceso. Longitud máxima permitida: [usuario: 255 caracteres, contraseña: 128 caracteres - PROPUESTO confirmar con negocio]
+BR2: Si el usuario o la contraseña son incorrectos, el sistema debe mostrar un mensaje de error ÚNICO 'Invalid credentials' [PROPUESTO — actualmente muestra mensajes diferenciados], sin indicar cuál de los dos campos falló (control anti-enumeración de usuarios según OWASP A01:2021)
+BR3: Tras un login exitoso, el sistema debe redirigir al usuario a la página segura (`/secure`) y mostrar un mensaje de confirmación 'You logged into a secure area!'. Los intentos de acceso directo a `/secure` sin sesión válida deben redirigir a `/login` [PROPUESTO — verificar comportamiento actual]
+BR4: El campo contraseña debe ocultar el texto ingresado (tipo password) en todo momento
+BR5: El sistema debe permitir cerrar la sesión desde la página segura y, al hacerlo, invalidar el acceso a `/secure` hasta un nuevo login
+BR6: [NUEVA BR - PROPUESTO] El sistema debe bloquear temporalmente la cuenta tras [5 intentos fallidos consecutivos - PROPUESTO confirmar con negocio] de login durante un período de [15 minutos - PROPUESTO confirmar con negocio], para mitigar ataques de fuerza bruta (OWASP A07:2021)
+BR7: [NUEVA BR - PROPUESTO] El sistema debe registrar en logs de auditoría todos los eventos de autenticación (login exitoso, login fallido, logout) incluyendo timestamp, usuario, resultado y dirección IP de origen, sin almacenar contraseñas en texto plano (OWASP A09:2021)
+BR8: [NUEVA BR - PROPUESTO] El sistema debe invalidar automáticamente la sesión del usuario tras [30 minutos de inactividad - PROPUESTO confirmar con negocio] y regenerar el token de sesión tras cada login exitoso para prevenir session fixation (OWASP A01:2021, A03:2021)
+BR9: [NUEVA BR - PROPUESTO] El sistema debe sanitizar y escapar todas las entradas en los campos de usuario y contraseña para prevenir inyección SQL, XSS y otros ataques de inyección, tratando caracteres especiales como texto literal (OWASP A03:2021)","Existe al menos un usuario válido registrado en el sistema (usuario: `tomsmith`, contraseña: `SuperSecretPassword!`)
+El usuario no tiene una sesión activa previa (navegador sin cookies de sesión)
+La aplicación está desplegada y accesible en la URL del SUT",Ninguna dependencia externa: el módulo de login es independiente y no requiere otros servicios previos,3,2,9,14,Si,Si,40%,100%,NO_APTO,64.4,"E1: Validar login exitoso con credenciales válidas
+E4: Validar logout exitoso e invalidación de sesión
+E7: Validar enmascaramiento visual del campo contraseña
+E2: Validar rechazo de login con usuario inexistente
+E3: Validar rechazo de login con contraseña incorrecta
+E6: Validar bloqueo de acceso directo a página segura sin autenticación
+E8: Validar comportamiento de logout sin sesión activa
+E12: Validar rechazo de login con campos vacíos
+E5: Validar mensaje genérico anti-enumeración en errores de login
+E9: Validar bloqueo de cuenta tras múltiples intentos fallidos de login
+E10: Validar auditoría de eventos de autenticación en logs del sistema
+E11: Validar expiración de sesión por inactividad
+E13: Validar protección contra inyección SQL en campo usuario","Validación de usuario y contraseña en el formulario de login
+Redirección a área segura tras login exitoso
+Mensajes de error para usuario inválido y contraseña inválida
+Cierre de sesión (logout) e invalidación de acceso a `/secure`","Recuperación de contraseña (""¿Olvidaste tu contraseña?"") — no existe en este SUT — sin cobertura planificada
+Registro de nuevos usuarios (sign up) — no existe en este SUT — sin cobertura planificada
+Autenticación multifactor (MFA) — no aplica a esta versión del sistema — sin cobertura planificada","SUT: https://the-internet.herokuapp.com/login
+Documentación pública del proyecto ""The Internet"" (Heroku), sección Login","Esta HU describe el comportamiento observable y verificado manualmente contra el SUT público. El control anti-enumeración (BR2) y el manejo de mensajes de error diferenciados por campo (E2/E3) están documentados aquí de forma explícita para que el análisis de NEXUS los cubra directamente, sin depender de que el modelo los infiera como gap."

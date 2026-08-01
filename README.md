@@ -53,6 +53,33 @@ Entrada: una HU de **3 viñetas ambiguas** (`demo/HU_PASS_01_original.md`). Sali
 
 ---
 
+## 🔁 Dos corridas reales sobre el mismo SUT — la base para QDF y el orquestador
+
+A diferencia del golden set (`demo/`, fijo, para evals offline), estas dos corridas son
+**100% reales**, contra el mismo sistema bajo prueba público
+(`https://the-internet.herokuapp.com/login`), pensadas como el par de referencia que
+alimenta el resto del ecosistema QASL: [QDF](https://e-gregorio.github.io/qasl-quality-decision-framework/)
+toma el VCR propuesto y lo ratifica en Planning Poker con el equipo; el orquestador
+ejecuta los Test Cases una vez el VCR decide `AUTOMATIZAR`.
+
+| | `input/HU_LOGIN_01_original.md` → **HU-001** | `input/HU_LOGIN_02_original.md` → **HU-002** |
+|---|---|---|
+| Estilo de la HU original | Deliberadamente incompleta (3 BRs sin numerar, sin escenarios Gherkin, campos clave vacíos) | Completa: 5 BRs, 4 escenarios Gherkin, alcance y referencias explícitos |
+| RHI | **19.4/100** → `NO_APTO` | **64.4/100** → `NO_APTO` |
+| Críticos incumplidos | 7 | 4 |
+| Gaps detectados | 15 | 9 |
+| Cobertura inicial → proyectada | 0% → 100% | 40% → 100% |
+| Reglas de negocio (originales → con propuestas de NEXUS) | 3 → 7 | 5 → 7 |
+| Suites / Precondiciones / Test Cases | 3 / 5 / 15 | 3 / 5 / 13 |
+| VCR | Sin datos — la HU original no trae estimaciones y el modelo no propuso `vcr_propuesto` en esa corrida | **V3+C2+R9 = 14 → AUTOMATIZAR** (propuesto, a ratificar en QDF) |
+
+Ambas quedan en `outputs/HU-001/` y `outputs/HU-002/`, con IDs estables — `catalog/id_registry.json`
+garantiza que volver a analizar la misma fuente nunca cambia el `HU_ID` — y trazabilidad exacta
+`HU-00N | TS-0N | TC-0N` en las cuatro pestañas CSV (que ahora incluyen los 16 campos completos
+de la plantilla ISTQB, no solo un resumen), listas para mapear 1:1 a Jira/Azure DevOps.
+
+---
+
 ## ⚙️ El pipeline
 
 ```mermaid
@@ -76,8 +103,13 @@ flowchart TD
     K --> L["🚀 Desarrollo construye<br/>QA ejecuta desde el día 1<br/><i>Playwright · Newman · K6 · ZAP</i>"]
 
     style NEXUS fill:#0f172a,color:#fff,stroke:#2563EB,stroke-width:2px
-    style G fill:#dcfce7,stroke:#16a34a
-    style K fill:#fef3c7,stroke:#d97706
+    style A fill:#f1f5f9,stroke:#334155,color:#000
+    style G fill:#dcfce7,stroke:#16a34a,color:#000
+    style H fill:#dbeafe,stroke:#1d4ed8,color:#000
+    style I fill:#f1f5f9,stroke:#334155,color:#000
+    style J fill:#f1f5f9,stroke:#334155,color:#000
+    style K fill:#fef3c7,stroke:#d97706,color:#000
+    style L fill:#dcfce7,stroke:#16a34a,color:#000
 ```
 
 ### Principios de diseño no negociables
@@ -88,7 +120,7 @@ flowchart TD
 | 🚫 **Prohibido inventar** | Campos ausentes = `NO_ESPECIFICADO`; todo valor propuesto marcado `[PROPUESTO]` para confirmación del negocio |
 | 📜 **Contratos entre etapas** | JSON Schema valida la salida de cada agente; coerciones deterministas + reintento con feedback |
 | 🔊 **Sin fallback silencioso** | Falla de API o contrato = corrida `FALLIDA` visible; nunca un análisis vacío disfrazado de válido |
-| 🔁 **Idempotencia por diseño** | IDs derivados del contenido (`HU_PASS_01_TC_E1`): re-analizar actualiza, no duplica |
+| 🔁 **Idempotencia por diseño** | IDs limpios y secuenciales (`HU-001`, `TS-01`, `PRC-01`, `TC-01`) con registro persistente (`catalog/id_registry.json`): re-analizar la misma fuente siempre devuelve el mismo `HU_ID` — trazabilidad estable para Jira/Azure DevOps |
 | ✍️ **Los humanos firman** | NEXUS prepara la evidencia; Analista, QA Lead y Cliente aprueban |
 
 ---
@@ -96,19 +128,25 @@ flowchart TD
 ## 🔗 Trazabilidad completa antes del primer despliegue
 
 ```mermaid
-flowchart LR
-    EP["🏛️ ÉPICA<br/>EP-001"] --> HU["📘 USER STORY<br/>HU_PASS_01<br/><i>RHI · dictamen · VCR</i>"]
-    HU --> BR["📐 BUSINESS RULES<br/>BR1..BR5<br/><i>incluye 2 propuestas por NEXUS</i>"]
-    BR --> GAP["🚨 GAPS<br/>13 · severidad + OWASP"]
-    GAP --> ESC["📝 ESCENARIOS<br/>E1..E13 · Gherkin"]
-    ESC --> TC["🧪 TEST CASES<br/>HU_PASS_01_TC_E1..E13"]
-    TC --> TS["🗂️ TEST SUITES<br/>TS01 Positivos<br/>TS02 Negativos<br/>TS03 Seguridad-OWASP"]
-    TC -.M2M.- PRC["🔧 PRECONDICIONES<br/>PRC01..05<br/><i>setup ejecutable</i>"]
+flowchart TD
+    EP["🏛️ ÉPICA<br/>EP-001"] --> HU["📘 USER STORY<br/>HU-NNN<br/><i>RHI · dictamen · VCR</i>"]
+    HU --> BR["📐 BUSINESS RULES<br/>BR1..BR5<br/><i>incluye propuestas por NEXUS</i>"]
+    BR --> GAP["🚨 GAPS<br/>severidad + OWASP"]
+    GAP --> ESC["📝 ESCENARIOS<br/>E1..EN · Gherkin"]
+    ESC --> TC["🧪 TEST CASES<br/>TC-01..TC-NN<br/><i>traza a HU-NNN · TS-0N · TC-0N</i>"]
+    TC --> TS["🗂️ TEST SUITES<br/>TS-01 Positivos · TS-02 Negativos · TS-03 Seguridad-OWASP"]
+    TC --> PRC["🔧 PRECONDICIONES (M2M)<br/>PRC-01..0N · setup ejecutable"]
     TC --> SMK["🔥 SMOKE SUITE<br/>derivada por regla"]
 
-    style EP fill:#e0e7ff,stroke:#4338ca
-    style GAP fill:#fee2e2,stroke:#dc2626
-    style SMK fill:#ffedd5,stroke:#ea580c
+    style EP fill:#e0e7ff,stroke:#4338ca,color:#000
+    style HU fill:#dbeafe,stroke:#1d4ed8,color:#000
+    style BR fill:#f1f5f9,stroke:#334155,color:#000
+    style GAP fill:#fee2e2,stroke:#dc2626,color:#000
+    style ESC fill:#f1f5f9,stroke:#334155,color:#000
+    style TC fill:#dcfce7,stroke:#16a34a,color:#000
+    style TS fill:#f1f5f9,stroke:#334155,color:#000
+    style PRC fill:#f1f5f9,stroke:#334155,color:#000
+    style SMK fill:#ffedd5,stroke:#ea580c,color:#000
 ```
 
 Cuando un TC falla en ejecución, el diagnóstico viene incluido: el TC traza a su escenario, el escenario a su BR, la BR a la HU **certificada y aprobada por el cliente**. El reporte de defecto se escribe solo — y la discusión "¿esto era un bug o nunca se especificó?" desaparece.
@@ -148,11 +186,12 @@ copy .env.example .env            # completar ANTHROPIC_API_KEY
 # Verificación offline (sin API — evals contra el golden set)
 python tests/test_offline.py      # → TODOS LOS CHECKS PASARON ✔
 
-# Análisis completo de una HU
-python run_nexus.py ..\demo\HU_PASS_01_original.md
+# Análisis de una HU real — las HUs a analizar viven en input/, nunca en demo/
+# (demo/ es el golden set fijo de referencia, no se toca)
+python run_nexus.py ..\input\HU_LOGIN_01_original.md
 ```
 
-Salidas en `outputs/<HU_ID>/`: HU canónica → certificación NX → gaps → activos → **Certificado** + **HU Ideal** + **CSVs** + manifiesto de auditoría.
+Salidas en `outputs/<HU_ID>/`: HU canónica → certificación NX → gaps → activos → **Certificado** + **HU Ideal** + **CSVs** + manifiesto de auditoría — esto es lo que consume QDF para la ceremonia de estimación y, más adelante, el orquestador.
 
 ---
 
@@ -170,11 +209,12 @@ El motor se certifica con la propia metodología que implementa (guía de Testin
 
 ```
 nexus-requirements/
-├── catalog/          # La norma ejecutable: nx_rules.yaml (29 reglas) · vcr_policy.yaml
+├── catalog/          # La norma ejecutable: nx_rules.yaml (29 reglas) · vcr_policy.yaml · id_registry.json (IDs estables entre corridas)
 ├── schemas/          # Contratos JSON entre etapas (4 schemas)
 ├── engine/           # El motor: orquestador + 4 agentes + renderizadores + evals
-├── demo/             # Golden set: HU horrible → todos los artefactos certificados
-├── outputs/          # Corridas reales del motor
+├── input/            # HUs originales reales a analizar — el comando apunta aquí
+├── demo/             # Golden set fijo de referencia: HU horrible → todos los artefactos certificados (no se toca)
+├── outputs/          # Resultado de cada corrida — esto es lo que consumen QDF y el orquestador
 └── docs/             # Blueprint de arquitectura completo
 ```
 

@@ -1,0 +1,193 @@
+{
+  "id": "HU-002",
+  "nombre": "Autenticación de Usuario en Formulario de Login",
+  "descripcion": {
+    "como": "usuario registrado del sistema",
+    "quiero": "iniciar sesión ingresando mi usuario y contraseña",
+    "para": "acceder de forma segura a las funcionalidades protegidas de la aplicación"
+  },
+  "epica": {
+    "id": "EP-001",
+    "nombre": "Autenticación y Gestión de Acceso"
+  },
+  "prioridad": "Alta",
+  "estado": "Backlog",
+  "sut": {
+    "descripcion": "Aplicación de prueba pública (Heroku \"The Internet\"), módulo de Login",
+    "url": "https://the-internet.herokuapp.com/login"
+  },
+  "usuarios_roles": [
+    "Usuario registrado (rol estándar)",
+    "Administrador del sistema (mismo formulario, mismas reglas de validación)"
+  ],
+  "reglas_negocio": [
+    {
+      "id": "BR1",
+      "descripcion": "El sistema debe validar usuario y contraseña contra las credenciales almacenadas antes de conceder acceso",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR2",
+      "descripcion": "Si el usuario o la contraseña son incorrectos, el sistema debe mostrar un mensaje de error genérico, sin indicar cuál de los dos campos falló (control anti-enumeración de usuarios)",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "Tras un login exitoso, el sistema debe redirigir al usuario a la página segura (`/secure`) y mostrar un mensaje de confirmación",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR4",
+      "descripcion": "El campo contraseña debe ocultar el texto ingresado (tipo password) en todo momento",
+      "origen": "explicita"
+    },
+    {
+      "id": "BR5",
+      "descripcion": "El sistema debe permitir cerrar la sesión desde la página segura y, al hacerlo, invalidar el acceso a `/secure` hasta un nuevo login",
+      "origen": "explicita"
+    }
+  ],
+  "precondiciones": [
+    "Existe al menos un usuario válido registrado en el sistema (usuario: `tomsmith`, contraseña: `SuperSecretPassword!`)",
+    "El usuario no tiene una sesión activa previa (navegador sin cookies de sesión)",
+    "La aplicación está desplegada y accesible en la URL del SUT"
+  ],
+  "dependencias": [
+    "Ninguna dependencia externa: el módulo de login es independiente y no requiere otros servicios previos"
+  ],
+  "estimaciones": "NO_ESPECIFICADO",
+  "escenarios": [
+    {
+      "id": "E1",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el usuario está en la página de login (`/login`)"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "ingresa el usuario `tomsmith` y la contraseña `SuperSecretPassword!` y presiona \"Login\""
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema lo redirige a `/secure`"
+        },
+        {
+          "tipo": "Y",
+          "texto": "muestra el mensaje \"You logged into a secure area!\""
+        }
+      ],
+      "titulo": "Login exitoso con credenciales válidas"
+    },
+    {
+      "id": "E2",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el usuario está en la página de login"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "ingresa un usuario que no existe (ej. `usuario_invalido`) y cualquier contraseña, y presiona \"Login\""
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema muestra el mensaje de error \"Your username is invalid!\""
+        },
+        {
+          "tipo": "Y",
+          "texto": "el usuario permanece en `/login`"
+        }
+      ],
+      "titulo": "Login fallido con usuario inexistente"
+    },
+    {
+      "id": "E3",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el usuario está en la página de login"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "ingresa el usuario válido `tomsmith` con una contraseña incorrecta y presiona \"Login\""
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema muestra el mensaje de error \"Your password is invalid!\""
+        },
+        {
+          "tipo": "Y",
+          "texto": "el usuario permanece en `/login`"
+        }
+      ],
+      "titulo": "Login fallido con contraseña incorrecta"
+    },
+    {
+      "id": "E4",
+      "pasos": [
+        {
+          "tipo": "DADO",
+          "texto": "que el usuario tiene una sesión activa en `/secure`"
+        },
+        {
+          "tipo": "CUANDO",
+          "texto": "presiona el botón \"Logout\""
+        },
+        {
+          "tipo": "ENTONCES",
+          "texto": "el sistema lo redirige a `/login`"
+        },
+        {
+          "tipo": "Y",
+          "texto": "muestra el mensaje \"You logged out of the secure area!\""
+        },
+        {
+          "tipo": "Y",
+          "texto": "un intento posterior de acceder directamente a `/secure` lo redirige de nuevo a `/login`"
+        }
+      ],
+      "titulo": "Logout exitoso desde la página segura"
+    }
+  ],
+  "dentro_alcance": [
+    "Validación de usuario y contraseña en el formulario de login",
+    "Redirección a área segura tras login exitoso",
+    "Mensajes de error para usuario inválido y contraseña inválida",
+    "Cierre de sesión (logout) e invalidación de acceso a `/secure`"
+  ],
+  "fuera_alcance": [
+    {
+      "item": "Recuperación de contraseña (\"¿Olvidaste tu contraseña?\") — no existe en este SUT",
+      "cubierto_por": "sin cobertura planificada"
+    },
+    {
+      "item": "Registro de nuevos usuarios (sign up) — no existe en este SUT",
+      "cubierto_por": "sin cobertura planificada"
+    },
+    {
+      "item": "Autenticación multifactor (MFA) — no aplica a esta versión del sistema",
+      "cubierto_por": "sin cobertura planificada"
+    }
+  ],
+  "referencias": [
+    "SUT: https://the-internet.herokuapp.com/login",
+    "Documentación pública del proyecto \"The Internet\" (Heroku), sección Login"
+  ],
+  "notas": "Esta HU describe el comportamiento observable y verificado manualmente contra el SUT público. El control anti-enumeración (BR2) y el manejo de mensajes de error diferenciados por campo (E2/E3) están documentados aquí de forma explícita para que el análisis de NEXUS los cubra directamente, sin depender de que el modelo los infiera como gap.",
+  "_meta": {
+    "campos_no_especificados": [
+      "estimaciones"
+    ],
+    "supuestos_normalizacion": [
+      "Las reglas de negocio BR1-BR5 estaban numeradas explícitamente en el documento fuente, por lo que se mantiene el origen 'explicita'",
+      "Los escenarios E1-E4 presentan estructura Gherkin completa (DADO/CUANDO/ENTONCES/Y) en el documento original, se preservan tal cual",
+      "El campo 'estimaciones' está marcado en el documento como 'No aplica en esta etapa', se normaliza a NO_ESPECIFICADO según las reglas",
+      "El campo 'dentro_alcance' contiene la lista explícita del alcance cubierto por la HU",
+      "El campo 'fuera_alcance' contiene items con su estado de cobertura, todos marcados como 'sin cobertura planificada'",
+      "La sección 'Notas' del documento original se preserva tal cual en el campo 'notas' de la HU canónica"
+    ],
+    "fuente": "HU_LOGIN_02_original.md",
+    "version": 1
+  }
+}

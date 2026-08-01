@@ -1,0 +1,191 @@
+{
+  "hu_id": "HU-002",
+  "version_hu": 1,
+  "version_catalogo": "0.1.0",
+  "evaluaciones": [
+    {
+      "regla": "NX-001",
+      "veredicto": "INCUMPLE",
+      "evidencia": "ID 'HU-002' no cumple HU_<MODULO>_<NN>"
+    },
+    {
+      "regla": "NX-002",
+      "veredicto": "CUMPLE",
+      "evidencia": "Como/Quiero/Para completos"
+    },
+    {
+      "regla": "NX-003",
+      "veredicto": "CUMPLE",
+      "evidencia": "Épica: {'id': 'EP-001', 'nombre': 'Autenticación y Gestión de Acceso'}"
+    },
+    {
+      "regla": "NX-004",
+      "veredicto": "CUMPLE",
+      "evidencia": "Prioridad: Alta"
+    },
+    {
+      "regla": "NX-005",
+      "veredicto": "CUMPLE",
+      "evidencia": "5 BRs numeradas explícitamente"
+    },
+    {
+      "regla": "NX-006",
+      "veredicto": "CUMPLE",
+      "evidencia": "4 escenarios Gherkin completos"
+    },
+    {
+      "regla": "NX-007",
+      "veredicto": "CUMPLE",
+      "evidencia": "Precondiciones declaradas"
+    },
+    {
+      "regla": "NX-008",
+      "veredicto": "CUMPLE",
+      "evidencia": "Dependencias declaradas"
+    },
+    {
+      "regla": "NX-009",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Sin estimaciones VCR"
+    },
+    {
+      "regla": "NX-010",
+      "veredicto": "CUMPLE",
+      "evidencia": "Alcance declarado"
+    },
+    {
+      "regla": "NX-011",
+      "veredicto": "CUMPLE",
+      "evidencia": "Fuera de alcance con referencias cruzadas"
+    },
+    {
+      "regla": "NX-012",
+      "veredicto": "CUMPLE",
+      "evidencia": "Roles identificados"
+    },
+    {
+      "regla": "NX-013",
+      "veredicto": "CUMPLE",
+      "evidencia": "Referencias presentes"
+    },
+    {
+      "regla": "NX-020",
+      "veredicto": "CUMPLE",
+      "evidencia": "Revisión exhaustiva de todas las BR y escenarios: BR1 'validar usuario y contraseña contra las credenciales almacenadas', BR2 'mensaje de error genérico', BR3 'redirigir al usuario a la página segura', BR4 'ocultar el texto ingresado (tipo password)', BR5 'invalidar el acceso'. Escenarios E1-E4 utilizan términos objetivos: 'redirige a `/secure`', 'muestra el mensaje \"You logged into a secure area!\"', 'permanece en `/login`'. No se encontraron términos no verificables como 'rápido', 'seguro', 'fácil', 'adecuado', 'amigable', 'eficiente', 'sin problemas'."
+    },
+    {
+      "regla": "NX-021",
+      "veredicto": "CUMPLE",
+      "evidencia": "Todas las BR son testeables: BR1 se valida con E1 (credenciales válidas aceptadas) y E2/E3 (credenciales inválidas rechazadas); BR2 se valida con E2 y E3 (mensajes de error específicos); BR3 se valida con E1 (redirección a /secure y mensaje de confirmación); BR4 es verificable mediante inspección del atributo type='password' del campo; BR5 se valida con E4 (logout invalida sesión y redirige). Cada BR tiene criterios claros de aceptación/rechazo."
+    },
+    {
+      "regla": "NX-022",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR2 establece 'mensaje de error genérico, sin indicar cuál de los dos campos falló (control anti-enumeración de usuarios)', pero E2 muestra 'Your username is invalid!' y E3 muestra 'Your password is invalid!', revelando exactamente cuál campo falló. Esto contradice directamente el principio anti-enumeración declarado en BR2.",
+      "recomendacion": "Corregir BR2 para reflejar el comportamiento real del SUT (mensajes diferenciados) y eliminar la mención al 'control anti-enumeración', O modificar E2 y E3 para que ambos muestren un mensaje genérico idéntico tipo 'Invalid username or password' si el control anti-enumeración es un requisito de negocio real."
+    },
+    {
+      "regla": "NX-023",
+      "veredicto": "CUMPLE",
+      "evidencia": "La HU cubre una única funcionalidad: 'Autenticación de Usuario en Formulario de Login'. Aunque incluye logout (BR5, E4), este es parte integral del ciclo de vida de la sesión de autenticación, no una funcionalidad separada. El alcance está claramente delimitado en 'dentro_alcance': validación de credenciales, redirección, mensajes de error y cierre de sesión, todos componentes cohesivos de un único proceso de autenticación."
+    },
+    {
+      "regla": "NX-024",
+      "veredicto": "NO_APLICA",
+      "justificacion_na": "La HU no contiene límites temporales, umbrales de performance, límites de caracteres, intentos máximos de login, ni otros valores cuantificables que requieran número y unidad. Las BR se enfocan en comportamiento funcional (validar, mostrar mensaje, redirigir, ocultar texto) sin especificaciones cuantitativas de tiempo, volumen o dimensión."
+    },
+    {
+      "regla": "NX-025",
+      "veredicto": "CUMPLE",
+      "evidencia": "Vocabulario consistente verificado: 'usuario' (usado consistentemente en BR1, BR2, E1, E2, E3); 'contraseña' (BR1, BR2, BR4, E1, E3); 'sistema' (BR1-BR5, consistente como sujeto de las acciones); '/login' y '/secure' (rutas mencionadas consistentemente); 'mensaje de error' (BR2, E2, E3); 'sesión' (BR5, E4, precondición 2). No se detectan sinónimos para el mismo concepto."
+    },
+    {
+      "regla": "NX-030",
+      "veredicto": "CUMPLE",
+      "evidencia": "BR1 → E1 (login exitoso valida credenciales); BR2 → E2 y E3 (mensajes de error mostrados); BR3 → E1 (redirección y mensaje de confirmación); BR4 → implícitamente validable en todos los escenarios donde se ingresa contraseña (E1, E2, E3), campo tipo password; BR5 → E4 (logout exitoso e invalidación de acceso). Todas las BR tienen al menos un escenario positivo que valida su cumplimiento."
+    },
+    {
+      "regla": "NX-031",
+      "veredicto": "INCUMPLE",
+      "evidencia": "BR4 ('El campo contraseña debe ocultar el texto ingresado (tipo password) en todo momento') no tiene escenario negativo que valide el rechazo cuando esta condición no se cumple. E1, E2, E3 asumen que el campo es tipo password pero no hay escenario que pruebe qué ocurre si el campo se renderiza como texto plano o si el ocultamiento falla. BR3 tampoco tiene escenario de rechazo (qué ocurre si la redirección falla o el mensaje no se muestra).",
+      "recomendacion": "Agregar escenario negativo para BR4: 'DADO que el campo contraseña NO está configurado como tipo password, CUANDO el usuario inspecciona el campo, ENTONCES debe fallar la validación de seguridad del formulario'. Para BR3, agregar escenario que valide comportamiento si la redirección a /secure falla tras login exitoso."
+    },
+    {
+      "regla": "NX-032",
+      "veredicto": "NO_APLICA",
+      "justificacion_na": "No existen BRs con valores numéricos que definan límites, umbrales o rangos. Las reglas son cualitativas (validar credenciales, mostrar mensajes, redirigir, ocultar texto, invalidar sesión) sin especificaciones numéricas de longitud mínima/máxima de usuario/contraseña, intentos de login, tiempo de sesión, etc."
+    },
+    {
+      "regla": "NX-033",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja autenticación (BR1: 'validar usuario y contraseña'), credenciales sensibles (precondición: 'usuario: `tomsmith`, contraseña: `SuperSecretPassword!`'), permisos de acceso (BR3: 'acceder a la página segura', BR5: 'invalidar el acceso a `/secure`'), pero ningún escenario valida aspectos de seguridad como: protección contra ataques de fuerza bruta, inyección SQL en campos de login, XSS en mensajes de error, transmisión segura de credenciales (HTTPS), almacenamiento seguro de contraseñas (hashing). No hay referencia a OWASP A01:2021 (Broken Access Control), A02:2021 (Cryptographic Failures) o A07:2021 (Identification and Authentication Failures).",
+      "recomendacion": "Agregar escenarios de seguridad: (1) E5 - Protección contra fuerza bruta: DADO 5 intentos fallidos consecutivos del mismo usuario, ENTONCES el sistema debe bloquear temporalmente la cuenta o implementar CAPTCHA (OWASP A07:2021); (2) E6 - Inyección SQL: DADO que el usuario ingresa `admin' OR '1'='1` como usuario, ENTONCES el sistema debe sanitizar la entrada y rechazar con mensaje de error genérico (OWASP A03:2021); (3) E7 - Transmisión segura: DADO que el usuario envía credenciales, ENTONCES la comunicación debe ser sobre HTTPS con TLS 1.2+ (OWASP A02:2021)."
+    },
+    {
+      "regla": "NX-034",
+      "veredicto": "CUMPLE",
+      "evidencia": "Los mensajes de error están especificados textualmente: E2 → 'Your username is invalid!'; E3 → 'Your password is invalid!'; E1 (mensaje de éxito) → 'You logged into a secure area!'; E4 (mensaje de logout) → 'You logged out of the secure area!'. Todos los mensajes esperados están citados literalmente entre comillas."
+    },
+    {
+      "regla": "NX-035",
+      "veredicto": "CUMPLE",
+      "evidencia": "Datos de prueba explícitos en precondiciones: 'Existe al menos un usuario válido registrado en el sistema (usuario: `tomsmith`, contraseña: `SuperSecretPassword!`)'. E1 usa 'tomsmith' y 'SuperSecretPassword!' (derivables de precondición); E2 usa 'usuario_invalido' y 'cualquier contraseña' (derivable como complemento de credenciales válidas); E3 usa 'tomsmith' con 'una contraseña incorrecta' (derivable como contraseña ≠ SuperSecretPassword!). Todos los datos de prueba son derivables."
+    },
+    {
+      "regla": "NX-040",
+      "veredicto": "INCUMPLE",
+      "evidencia": "Campo 'estimaciones' marcado como 'NO_ESPECIFICADO' pero no existe declaración explícita de requisitos no funcionales de performance (tiempo máximo de respuesta del login, tiempo de expiración de sesión) o volumen (usuarios concurrent soportados, tasa de peticiones). Tampoco hay declaración 'N/A explícito' justificando por qué no aplican NFRs a esta HU crítica de autenticación.",
+      "recomendacion": "Agregar sección de NFRs con especificaciones cuantificadas: (1) Performance: 'El sistema debe responder a la validación de credenciales en ≤2 segundos en el percentil 95'; (2) Sesión: 'La sesión debe expirar tras 30 minutos de inactividad'; (3) Concurrencia: 'El sistema debe soportar 100 logins simultáneos sin degradación'. O declarar explícitamente 'N/A: NFRs gestionados a nivel de épica EP-001'."
+    },
+    {
+      "regla": "NX-041",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU tiene interfaz de usuario explícita (formulario de login en /login, campos de usuario y contraseña, botón 'Login', página segura /secure, botón 'Logout', mensajes visuales), pero no hay declaración de consideraciones de accesibilidad WCAG 2.2: etiquetas de formulario accesibles (labels asociados a inputs), navegación por teclado (tab order, enter para submit), mensajes de error anunciados a lectores de pantalla (ARIA live regions), contraste de color suficiente en mensajes de error/éxito, ni declaración 'N/A' justificada.",
+      "recomendacion": "Agregar requisito de accesibilidad: 'BR6: El formulario de login debe cumplir WCAG 2.2 Nivel AA: (a) campos usuario/contraseña con <label> asociados (1.3.1 Info and Relationships), (b) navegación completa por teclado (2.1.1 Keyboard), (c) mensajes de error con role=\"alert\" para anuncio en lectores de pantalla (4.1.3 Status Messages), (d) ratio de contraste ≥4.5:1 en textos (1.4.3 Contrast Minimum)'. Agregar escenario E8 que valide navegación por teclado y anuncio de errores."
+    },
+    {
+      "regla": "NX-042",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja credenciales sensibles (usuario y contraseña en BR1, precondición con 'SuperSecretPassword!'), acceso a área protegida (BR3: '/secure'), inicio y cierre de sesión (BR5), pero no existe requisito de auditoría/logging de eventos de seguridad: intentos de login (exitosos/fallidos), logout, accesos no autorizados a /secure, posibles ataques (fuerza bruta, inyección). Sin auditoría, no hay trazabilidad de incidentes de seguridad.",
+      "recomendacion": "Agregar BR6: 'El sistema debe registrar en log de auditoría cada intento de login (exitoso/fallido) incluyendo: timestamp UTC, username intentado (sin revelar si existe), IP origen, user-agent, resultado (éxito/fallo/bloqueo). Retención mínima: 90 días. Cumplimiento con OWASP A09:2021 Security Logging and Monitoring Failures'. Agregar escenario E9 que valide la generación del log tras login exitoso/fallido."
+    },
+    {
+      "regla": "NX-043",
+      "veredicto": "INCUMPLE",
+      "evidencia": "La HU maneja autenticación, contraseñas, acceso a datos protegidos, pero no identifica normativa aplicable. Dependiendo del contexto: si almacena datos personales de usuarios UE → GDPR Art. 32 (seguridad del tratamiento); si maneja datos de salud → HIPAA; si procesa pagos → PCI-DSS Req. 8 (identificación de usuarios). Tampoco existe declaración 'N/A explícito' con justificación de por qué no aplica regulación.",
+      "recomendacion": "Agregar sección 'Cumplimiento Regulatorio': Identificar contexto del SUT (sector, geografía, tipo de datos). Si aplica GDPR, declarar: 'Cumplimiento GDPR Art. 32: (a) contraseñas almacenadas con hashing bcrypt/Argon2, (b) transmisión sobre TLS 1.3, (c) logs de acceso para auditoría de brechas'. Si no aplica, justificar: 'N/A: SUT público de demostración sin datos personales reales, sin alcance regulatorio'. Si desconocido, marcar: '[PROPUESTO] Pendiente confirmación con Legal sobre normativa aplicable según geografía de usuarios'."
+    }
+  ],
+  "puntos_obtenidos": 56,
+  "puntos_totales": 87,
+  "rhi": 64.4,
+  "dictamen": "NO_APTO",
+  "criticos_incumplidos": [
+    "NX-001",
+    "NX-022",
+    "NX-031",
+    "NX-033"
+  ],
+  "resumen_por_severidad": {
+    "CRITICO": {
+      "cumple": 5,
+      "incumple": 4,
+      "no_aplica": 0
+    },
+    "ALTO": {
+      "cumple": 6,
+      "incumple": 2,
+      "no_aplica": 2
+    },
+    "MEDIO": {
+      "cumple": 6,
+      "incumple": 2,
+      "no_aplica": 0
+    },
+    "BAJO": {
+      "cumple": 1,
+      "incumple": 1,
+      "no_aplica": 0
+    }
+  }
+}

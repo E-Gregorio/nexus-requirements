@@ -7,12 +7,47 @@ El código nunca re-decide lo que un agente ya decidió (principio 2),
 y toda aritmética (RHI, VCR, IDs, es_smoke) es determinista.
 """
 import json
+import re
 
 from nexus import NexusPipelineError
 from nexus.catalog import compute_rhi, evaluate_structural
+from nexus.config import ID_REGISTRY_FILE
 from nexus.contracts import validate
 
 MARCA_PROPUESTO = "[PROPUESTO"  # los valores propuestos llevan '[PROPUESTO...]'
+
+
+# ---------------------------------------------------------------------------
+# Registro de IDs — HU-NNN estable y secuencial entre corridas (código puro,
+# nunca lo decide el modelo). Clave: nombre del archivo fuente.
+# ---------------------------------------------------------------------------
+
+def _cargar_registro_ids() -> dict:
+    if ID_REGISTRY_FILE.exists():
+        with open(ID_REGISTRY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"version": 1, "siguiente_numero": 1, "asignados": {}}
+
+
+def _guardar_registro_ids(registro: dict) -> None:
+    ID_REGISTRY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(ID_REGISTRY_FILE, "w", encoding="utf-8") as f:
+        json.dump(registro, f, ensure_ascii=False, indent=2)
+
+
+def _resolver_hu_id(nombre_fuente: str) -> str:
+    """Devuelve el HU-NNN asignado a esta fuente. Misma fuente -> siempre el
+    mismo ID (idempotente). Fuente nueva -> el siguiente número libre."""
+    registro = _cargar_registro_ids()
+    asignados = registro.setdefault("asignados", {})
+    if nombre_fuente in asignados:
+        return asignados[nombre_fuente]
+    siguiente = registro.get("siguiente_numero", 1)
+    nuevo_id = f"HU-{siguiente:03d}"
+    asignados[nombre_fuente] = nuevo_id
+    registro["siguiente_numero"] = siguiente + 1
+    _guardar_registro_ids(registro)
+    return nuevo_id
 
 # Clave que identifica la raíz correcta de cada contrato (para desenvolver
 # respuestas que el modelo envuelve en una clave contenedora)
@@ -27,6 +62,28 @@ def _limpiar_nulos(obj):
     if isinstance(obj, list):
         return [_limpiar_nulos(x) for x in obj]
     return obj
+
+
+_RE_DESCRIPCION = re.compile(
+    r"como\s+(?P<como>.+?),?\s*quiero\s+(?P<quiero>.+?),?\s*para\s+(?P<para>.+?)\.?\s*$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _coerce_descripcion(desc):
+    """Si el modelo escribió Como/Quiero/Para como una sola oración en vez del
+    objeto {como, quiero, para} que exige el contrato, la separa por código —
+    mismo texto, sin inventar contenido, solo reestructurado."""
+    if isinstance(desc, dict) or not isinstance(desc, str):
+        return desc
+    m = _RE_DESCRIPCION.search(desc)
+    if not m:
+        return desc  # no matchea: se deja intacto, el schema lo rechazará con el error real
+    return {
+        "como": m.group("como").strip().strip(","),
+        "quiero": m.group("quiero").strip().strip(","),
+        "para": m.group("para").strip().strip("."),
+    }
 
 
 _RE_PASO = None  # compilado perezoso
@@ -55,6 +112,18 @@ def _coerce_pasos(pasos):
             else:
                 resultado.append({"tipo": "DADO", "texto": p.strip()})
     return resultado
+
+
+_TIPO_GAP_VALIDOS = {"falta_positivo", "falta_negativo", "falta_limite", "falta_seguridad", "sin_escenarios"}
+_TIPO_GAP_SINONIMOS = {
+    "falta_cobertura_positiva": "falta_positivo",
+    "falta_cobertura_negativa": "falta_negativo",
+    "falta_escenario_positivo": "falta_positivo",
+    "falta_escenario_negativo": "falta_negativo",
+    "falta_valores_limite": "falta_limite",
+    "falta_frontera": "falta_limite",
+    "falta_owasp": "falta_seguridad",
+}
 
 
 def _inferir_tipo_gap(gap: dict) -> str:
@@ -87,6 +156,7 @@ def _coercionar(data: dict, contrato: str) -> dict:
                 nolist = data.get("_meta", {}).get("campos_no_especificados")
                 if isinstance(nolist, list) and campo not in nolist:
                     nolist.append(campo)
+        data["descripcion"] = _coerce_descripcion(data.get("descripcion"))
         desc = data.get("descripcion")
         if isinstance(desc, dict):
             for k, v in list(desc.items()):
@@ -94,13 +164,14 @@ def _coercionar(data: dict, contrato: str) -> dict:
                     desc[k] = " ".join(str(x) for x in v)
         for esc in data.get("escenarios", []) or []:
             if isinstance(esc, dict):
+                _alias(esc, "titulo", "nombre", "título", "title", "nombre_escenario")
                 esc["pasos"] = _coerce_pasos(esc.get("pasos", []))
     if contrato == "cobertura":
         for gap in data.get("gaps", []) or []:
             if not isinstance(gap, dict):
                 continue
-            if "tipo_gap" not in gap:
-                gap["tipo_gap"] = _inferir_tipo_gap(gap)
+            if gap.get("tipo_gap") not in _TIPO_GAP_VALIDOS:
+                gap["tipo_gap"] = _TIPO_GAP_SINONIMOS.get(gap.get("tipo_gap"), _inferir_tipo_gap(gap))
             sug = gap.get("escenario_sugerido")
             if isinstance(sug, dict):
                 sug["pasos"] = _coerce_pasos(sug.get("pasos", []))
@@ -242,19 +313,32 @@ correo) a la HU Canónica del QASL Shift-Left Testing Framework.
 
 REGLAS ESTRICTAS:
 1. PROHIBIDO INVENTAR: todo campo ausente en la fuente se marca con el string "NO_ESPECIFICADO".
-   No completes épica, escenarios, estimaciones ni alcance si el documento no los trae.
+   No completes épica, escenarios, estimaciones ni dentro_alcance si el documento no los trae.
+   Usa EXACTAMENTE los nombres de campo del contrato — el alcance cubierto por la HU se llama
+   "dentro_alcance" (nunca "alcance" a secas); lo que queda fuera se llama "fuera_alcance".
 2. Si el documento trae reglas de negocio SIN numerar (viñetas, párrafos), normalízalas como
    BR1, BR2... con "origen": "inferida_de_texto". Si ya vienen numeradas, "origen": "explicita".
 3. Los escenarios solo se registran si están realmente en la fuente con estructura Gherkin
    (aunque sea informal). Un criterio vago tipo "funciona sin problemas" NO es un escenario:
-   va en "notas" como criterio no verificable.
+   va en "notas" como criterio no verificable. Redacta "notas" en tono profesional y
+   constructivo, sin calificar el trabajo del analista original (evita palabras como "vago",
+   "deficiente", "mal escrito"): describe el hallazgo y la mejora sugerida en tono neutral
+   (ej. "Los criterios de aceptación pueden formalizarse con estructura Gherkin (DADO/CUANDO/
+   ENTONCES) para hacerlos verificables", en vez de "son declaraciones vagas").
 4. Cada escenario se descompone en pasos tipados: lista ordenada de objetos
    {{"tipo": "DADO|CUANDO|ENTONCES|Y", "texto": "..."}}. Soporta múltiples Y y CUANDO.
 5. En _meta declara: "campos_no_especificados" (lista de campos marcados),
    "supuestos_normalizacion" (todo lo que inferiste y por qué), "fuente": "{nombre_fuente}", "version": 1.
-6. "fuera_alcance", si existe, es lista de objetos {{"item": "...", "cubierto_por": "HU_XXX o 'sin cobertura planificada'"}}.
+6. "dentro_alcance", si existe, es lista de strings con lo que la HU cubre explícitamente.
+   "fuera_alcance", si existe, es lista de objetos {{"item": "...", "cubierto_por": "HU-NNN o 'sin cobertura planificada'"}}.
 7. "epica", si existe, es objeto {{"id": "EP-NNN", "nombre": "..."}}.
 8. "estimaciones", si existe, es objeto con sp, valor, costo, probabilidad, impacto (enteros).
+9. "id": el identificador definitivo lo asigna el código (no vos) para garantizar
+   trazabilidad estable con Jira/Azure DevOps. Poné el string "PENDIENTE" en ese campo —
+   va a ser reemplazado automáticamente.
+10. "descripcion" es SIEMPRE un objeto con tres claves separadas — NUNCA una sola
+    oración de texto corrido. Formato exacto:
+    {{"como": "usuario registrado", "quiero": "restablecer mi contraseña", "para": "recuperar el acceso"}}
 
 DOCUMENTO FUENTE ({nombre_fuente}):
 ---------------------------------
@@ -263,7 +347,12 @@ DOCUMENTO FUENTE ({nombre_fuente}):
 
 Responde SOLO el JSON de la HU Canónica, con "id", "nombre", "descripcion", etc.
 DIRECTAMENTE en el nivel raíz del objeto (NO lo envuelvas en una clave como "hu_canonica")."""
-    return _call_validado(llm, "normalizador", prompt, "hu_canonica")
+
+    def _postproc(data):
+        data["id"] = _resolver_hu_id(nombre_fuente)
+        return data
+
+    return _call_validado(llm, "normalizador", prompt, "hu_canonica", postproc=_postproc)
 
 
 # ---------------------------------------------------------------------------
@@ -404,6 +493,9 @@ REGLAS:
    por TC (los simples con 1 paso); no repitas la descripción del escenario en
    el título ni en los pasos.
 4. TEST CASES: exactamente 1 por escenario (originales y sugeridos).
+   - "titulo": SIEMPRE empieza con la palabra exacta "Validar" (nunca "Verificar",
+     "Confirmar", "Comprobar" ni un sustantivo suelto), seguida de qué se comprueba.
+     Ej.: "Validar login exitoso con credenciales válidas" (no "Login exitoso...").
    - datos_entrada CONCRETOS con valores frontera reales (no "datos válidos":
      valores exactos en el límite, límite-1, límite+1, vacío).
    - resultado_esperado preciso y verificable, con mensajes textuales.
@@ -448,26 +540,45 @@ con "hu_id", "suites", "precondiciones" y "test_cases" DIRECTAMENTE en el nivel 
 
 
 def _asignar_ids_deterministas(hu_id: str, activos: dict) -> dict:
-    """IDs idempotentes por diseño: {HU}_TS{NN}, {HU}_PRC{NN}, {HU}_TC_{E}.
-    Re-analizar la misma HU produce SIEMPRE los mismos IDs (fix del bug de
-    duplicación de MS-02 v3)."""
+    """IDs simples y secuenciales, pensados para trazabilidad estable con
+    Jira/Azure DevOps: TS-NN, PRC-NN, TC-NN. La cadena de trazabilidad completa
+    se arma mostrando los tres juntos (HU-001 | TS-01 | TC-01), no concatenando
+    el ID del padre dentro del ID del hijo.
+
+    Los Test Case se agrupan por su Test Suite — todos los de TS-01 quedan
+    consecutivos, después todos los de TS-02, etc. — y se numeran de forma
+    CONTINUA a lo largo de toda la HU (no reinician en cada suite).
+    Idempotente: re-analizar la misma HU con el mismo contenido reproduce
+    siempre el mismo orden y los mismos IDs."""
     mapa_ts = {}
     for i, suite in enumerate(activos.get("suites", []), start=1):
-        nuevo = f"{hu_id}_TS{i:02d}"
+        nuevo = f"TS-{i:02d}"
         mapa_ts[suite.get("ts_id", nuevo)] = nuevo
         suite["ts_id"] = nuevo
 
     mapa_prc = {}
     for i, prc in enumerate(activos.get("precondiciones", []), start=1):
-        nuevo = f"{hu_id}_PRC{i:02d}"
+        nuevo = f"PRC-{i:02d}"
         mapa_prc[prc.get("prc_id", nuevo)] = nuevo
         prc["prc_id"] = nuevo
 
-    for tc in activos.get("test_cases", []):
-        esc = tc.get("escenario_id", "EX")
-        tc["tc_id"] = f"{hu_id}_TC_{esc}"
+    test_cases = activos.get("test_cases", [])
+    for tc in test_cases:
         tc["ts_id"] = mapa_ts.get(tc.get("ts_id"), tc.get("ts_id", ""))
         tc["prcs_asociadas"] = [mapa_prc.get(p, p) for p in tc.get("prcs_asociadas", [])]
+
+    # Reagrupar por suite (orden de las suites) antes de numerar, para que
+    # TC-01..TC-NN de TS-01 queden todos seguidos, después los de TS-02, etc.
+    orden_ts = [s["ts_id"] for s in activos.get("suites", [])]
+    agrupados = []
+    for ts_id in orden_ts:
+        agrupados += [tc for tc in test_cases if tc.get("ts_id") == ts_id]
+    restantes = [tc for tc in test_cases if tc.get("ts_id") not in orden_ts]
+    agrupados += restantes  # por si algún TC quedó sin ts_id reconocible
+
+    for i, tc in enumerate(agrupados, start=1):
+        tc["tc_id"] = f"TC-{i:02d}"
+    activos["test_cases"] = agrupados
 
     activos["hu_id"] = hu_id
     return activos

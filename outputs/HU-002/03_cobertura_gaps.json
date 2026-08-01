@@ -1,0 +1,357 @@
+{
+  "hu_id": "HU-002",
+  "coberturas": [
+    {
+      "br_id": "BR1",
+      "escenarios_que_cubren": [
+        {
+          "escenario_id": "E1",
+          "tipo_cobertura": "positivo",
+          "justificacion": "Valida credenciales correctas (tomsmith/SuperSecretPassword!) contra el sistema y concede acceso a /secure"
+        },
+        {
+          "escenario_id": "E2",
+          "tipo_cobertura": "negativo",
+          "justificacion": "Valida rechazo cuando el usuario no existe en las credenciales almacenadas"
+        },
+        {
+          "escenario_id": "E3",
+          "tipo_cobertura": "negativo",
+          "justificacion": "Valida rechazo cuando la contraseña no coincide con las credenciales almacenadas"
+        }
+      ],
+      "cobertura_porcentaje": 100
+    },
+    {
+      "br_id": "BR2",
+      "escenarios_que_cubren": [],
+      "cobertura_porcentaje": 0
+    },
+    {
+      "br_id": "BR3",
+      "escenarios_que_cubren": [
+        {
+          "escenario_id": "E1",
+          "tipo_cobertura": "positivo",
+          "justificacion": "Verifica redirección a /secure y mensaje 'You logged into a secure area!' tras login exitoso"
+        }
+      ],
+      "cobertura_porcentaje": 50
+    },
+    {
+      "br_id": "BR4",
+      "escenarios_que_cubren": [],
+      "cobertura_porcentaje": 0
+    },
+    {
+      "br_id": "BR5",
+      "escenarios_que_cubren": [
+        {
+          "escenario_id": "E4",
+          "tipo_cobertura": "positivo",
+          "justificacion": "Verifica logout exitoso, redirección a /login con mensaje de confirmación e invalidación del acceso a /secure"
+        }
+      ],
+      "cobertura_porcentaje": 50
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "br_id": "BR2",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "BR2 exige mensaje genérico para prevenir enumeración de usuarios (OWASP A01:2021 - Broken Access Control), pero E2 muestra 'Your username is invalid!' y E3 muestra 'Your password is invalid!', revelando qué campo falló. Falta escenario que verifique mensaje ÚNICO para ambos casos (usuario Y contraseña incorrectos).",
+      "escenario_sugerido": {
+        "titulo": "E5 - Verificación de mensaje genérico anti-enumeración en errores de login",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de login"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa un usuario inexistente con cualquier contraseña y presiona 'Login'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra el mensaje 'Invalid credentials' sin especificar si falló usuario o contraseña"
+          },
+          {
+            "tipo": "Y",
+            "texto": "cuando ingresa un usuario válido con contraseña incorrecta, el sistema muestra el MISMO mensaje 'Invalid credentials'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-002",
+      "br_id": "BR3",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "BR3 solo tiene cobertura positiva (E1). Falta escenario negativo que verifique imposibilidad de acceder a /secure sin autenticación previa.",
+      "escenario_sugerido": {
+        "titulo": "E6 - Intento de acceso directo a página segura sin autenticación",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario NO tiene sesión activa (navegador sin cookies de autenticación)"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta acceder directamente a la URL '/secure'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema lo redirige a '/login'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "muestra un mensaje indicando que debe iniciar sesión"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-003",
+      "br_id": "BR4",
+      "tipo_gap": "falta_negativo",
+      "severidad": "MEDIO",
+      "descripcion": "BR4 exige que el campo contraseña oculte el texto (tipo password) pero no existe escenario que lo verifique explícitamente (positivo ni negativo).",
+      "escenario_sugerido": {
+        "titulo": "E7 - Verificación de enmascaramiento visual del campo contraseña",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de login"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "escribe texto en el campo 'password'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra los caracteres como puntos o asteriscos (atributo type='password' presente)"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el texto real ingresado NO es visible en pantalla"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-004",
+      "br_id": "BR5",
+      "tipo_gap": "falta_negativo",
+      "severidad": "ALTO",
+      "descripcion": "BR5 solo tiene cobertura positiva (E4 - logout exitoso). Falta escenario negativo que verifique comportamiento cuando se intenta hacer logout sin sesión activa o cuando ya se hizo logout previamente.",
+      "escenario_sugerido": {
+        "titulo": "E8 - Intento de logout sin sesión activa",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario NO tiene sesión activa (navegador sin cookies de autenticación)"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta acceder directamente a la URL de logout o al botón 'Logout' si estuviera expuesto"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema lo redirige a '/login' o muestra mensaje indicando que no hay sesión para cerrar"
+          },
+          {
+            "tipo": "Y",
+            "texto": "no se produce error ni comportamiento inesperado"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-005",
+      "br_id": "BR6",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "OWASP A07:2021 (Identification and Authentication Failures) exige protección contra ataques de fuerza bruta en autenticación. No existe BR ni escenario que verifique bloqueo o rate-limiting tras múltiples intentos fallidos de login.",
+      "escenario_sugerido": {
+        "titulo": "E9 - Bloqueo de cuenta tras múltiples intentos fallidos de login",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha ingresado credenciales incorrectas [VALOR PROPUESTO: 5 veces consecutivas — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta iniciar sesión nuevamente con credenciales válidas o inválidas"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra mensaje 'Cuenta bloqueada temporalmente. Intente nuevamente en [VALOR PROPUESTO: 15 minutos — confirmar con negocio]'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "el acceso queda bloqueado durante ese período, incluso con credenciales correctas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-006",
+      "br_id": "BR7",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "OWASP A09:2021 (Security Logging and Monitoring Failures) exige auditoría de eventos de autenticación críticos. No existe BR ni escenario que verifique registro de intentos de login exitosos y fallidos.",
+      "escenario_sugerido": {
+        "titulo": "E10 - Auditoría de eventos de autenticación en logs del sistema",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el sistema tiene habilitado el registro de eventos de auditoría"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "el usuario intenta login con credenciales inválidas y luego con credenciales válidas"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema registra en los logs ambos eventos con timestamp, usuario intentado (sin contraseña), resultado (éxito/fallo) y dirección IP de origen"
+          },
+          {
+            "tipo": "Y",
+            "texto": "los eventos de logout también quedan registrados en los logs de auditoría"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-007",
+      "br_id": "BR8",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "OWASP A01:2021 y A03:2021 exigen gestión segura de tokens de sesión. No existe BR ni escenario que verifique expiración automática de sesión tras inactividad, ni regeneración de token tras login (prevención de session fixation).",
+      "escenario_sugerido": {
+        "titulo": "E11 - Expiración de sesión por inactividad",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario ha iniciado sesión exitosamente en /secure"
+          },
+          {
+            "tipo": "Y",
+            "texto": "permanece inactivo durante [VALOR PROPUESTO: 30 minutos — confirmar con negocio]"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "intenta realizar cualquier acción en /secure o refrescar la página"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema invalida la sesión, lo redirige a /login y muestra mensaje 'Su sesión ha expirado por inactividad'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-008",
+      "br_id": "BR1",
+      "tipo_gap": "falta_limite",
+      "severidad": "MEDIO",
+      "descripcion": "BR1 menciona validación de credenciales pero no existen escenarios de frontera para campos vacíos, espacios en blanco, o longitud máxima permitida en usuario/contraseña.",
+      "escenario_sugerido": {
+        "titulo": "E12 - Validación de campos vacíos en formulario de login",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de login"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "deja el campo usuario vacío y/o el campo contraseña vacío, y presiona 'Login'"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema muestra mensaje de validación 'Usuario y contraseña son obligatorios'"
+          },
+          {
+            "tipo": "Y",
+            "texto": "no realiza llamada al backend para validar credenciales (validación client-side)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "GAP-009",
+      "br_id": "BR9",
+      "tipo_gap": "falta_seguridad",
+      "severidad": "CRITICO",
+      "descripcion": "OWASP A03:2021 (Injection) exige sanitización de entradas. No existe BR ni escenario que verifique protección contra inyección SQL o XSS en campos de usuario/contraseña.",
+      "escenario_sugerido": {
+        "titulo": "E13 - Protección contra inyección SQL en campo usuario",
+        "pasos": [
+          {
+            "tipo": "DADO",
+            "texto": "que el usuario está en la página de login"
+          },
+          {
+            "tipo": "CUANDO",
+            "texto": "ingresa en el campo usuario un payload de inyección SQL (ej: ' OR '1'='1' --) y cualquier contraseña"
+          },
+          {
+            "tipo": "ENTONCES",
+            "texto": "el sistema trata el payload como texto literal, NO ejecuta la inyección"
+          },
+          {
+            "tipo": "Y",
+            "texto": "muestra mensaje de error genérico 'Invalid credentials' sin conceder acceso"
+          }
+        ]
+      }
+    }
+  ],
+  "resumen": {
+    "total_brs": 5,
+    "brs_con_cobertura_completa": 1,
+    "brs_con_cobertura_parcial": 2,
+    "brs_sin_cobertura": 2,
+    "total_gaps": 9,
+    "gaps_criticos": 5,
+    "gaps_altos": 2,
+    "gaps_medios": 2,
+    "gaps_bajos": 0,
+    "cobertura_inicial_promedio": 40,
+    "cobertura_proyectada": 100,
+    "escenarios_actuales": 4,
+    "escenarios_sugeridos": 9
+  },
+  "brs_mejoradas": [
+    {
+      "id": "BR2",
+      "descripcion": "Si el usuario o la contraseña son incorrectos, el sistema debe mostrar un mensaje de error ÚNICO 'Invalid credentials' [PROPUESTO — actualmente muestra mensajes diferenciados], sin indicar cuál de los dos campos falló (control anti-enumeración de usuarios según OWASP A01:2021)"
+    },
+    {
+      "id": "BR6",
+      "descripcion": "[NUEVA BR - PROPUESTO] El sistema debe bloquear temporalmente la cuenta tras [5 intentos fallidos consecutivos - PROPUESTO confirmar con negocio] de login durante un período de [15 minutos - PROPUESTO confirmar con negocio], para mitigar ataques de fuerza bruta (OWASP A07:2021)"
+    },
+    {
+      "id": "BR7",
+      "descripcion": "[NUEVA BR - PROPUESTO] El sistema debe registrar en logs de auditoría todos los eventos de autenticación (login exitoso, login fallido, logout) incluyendo timestamp, usuario, resultado y dirección IP de origen, sin almacenar contraseñas en texto plano (OWASP A09:2021)"
+    },
+    {
+      "id": "BR8",
+      "descripcion": "[NUEVA BR - PROPUESTO] El sistema debe invalidar automáticamente la sesión del usuario tras [30 minutos de inactividad - PROPUESTO confirmar con negocio] y regenerar el token de sesión tras cada login exitoso para prevenir session fixation (OWASP A01:2021, A03:2021)"
+    },
+    {
+      "id": "BR9",
+      "descripcion": "[NUEVA BR - PROPUESTO] El sistema debe sanitizar y escapar todas las entradas en los campos de usuario y contraseña para prevenir inyección SQL, XSS y otros ataques de inyección, tratando caracteres especiales como texto literal (OWASP A03:2021)"
+    },
+    {
+      "id": "BR1",
+      "descripcion": "El sistema debe validar que los campos usuario y contraseña no estén vacíos (validación client-side) y, si son válidos, compararlos contra las credenciales almacenadas antes de conceder acceso. Longitud máxima permitida: [usuario: 255 caracteres, contraseña: 128 caracteres - PROPUESTO confirmar con negocio]"
+    },
+    {
+      "id": "BR3",
+      "descripcion": "Tras un login exitoso, el sistema debe redirigir al usuario a la página segura (`/secure`) y mostrar un mensaje de confirmación 'You logged into a secure area!'. Los intentos de acceso directo a `/secure` sin sesión válida deben redirigir a `/login` [PROPUESTO — verificar comportamiento actual]"
+    }
+  ]
+}
